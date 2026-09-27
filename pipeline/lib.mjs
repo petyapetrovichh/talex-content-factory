@@ -56,7 +56,10 @@ export function ref(copy, key) {
 }
 
 /** Snap every time field (start/end/at/tail/…_at/review_at) to the fps frame grid, so a cut written as
- *  8.067 lands exactly ON frame 242 (8.0666…) instead of one frame late. */
+ *  8.067 lands ON frame 242 instead of one frame late. Snapped times sit FRAME_EPS before the frame:
+ *  the renderer's frame time can come out a hair below f/fps, and an event scheduled exactly on the
+ *  boundary would then fire one frame late (seen as a missing flash on the final counter burst). */
+export const FRAME_EPS = 0.0005;
 const TIME_KEY = /^(start|end|at|tail|land|review_at|drop)$|_at$/;
 export function snapTimes(node, fps, key = "") {
   if (Array.isArray(node)) return node.map((v) => snapTimes(v, fps, key));
@@ -64,7 +67,10 @@ export function snapTimes(node, fps, key = "") {
     for (const k of Object.keys(node)) node[k] = snapTimes(node[k], fps, k);
     return node;
   }
-  if (typeof node === "number" && TIME_KEY.test(key)) return Math.round(node * fps) / fps;
+  if (typeof node === "number" && TIME_KEY.test(key)) {
+    const f = Math.round(node * fps);
+    return f > 0 && key !== "tail" ? f / fps - FRAME_EPS : f / fps;
+  }
   return node;
 }
 
