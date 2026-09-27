@@ -8,3 +8,4 @@ videos/*/.hf-*
 **/.debug/
 audio/sfx/_takes/
 audio/music/_takes/
+videos/*/output/work-*/
