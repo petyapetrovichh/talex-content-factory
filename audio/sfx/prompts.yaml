@@ -1,6 +1,12 @@
-# TaleX brand sound library — ElevenLabs Sound Effects API (POST /v1/sound-generation).
+# TaleX brand sound library. Three sources:
+#   source: elevenlabs (default) — generated with the ElevenLabs Sound Effects API from `prompt`
+#                                  (POST /v1/sound-generation) at `duration_s` → audio/sfx/<name>.mp3
+#   source: hyperframes          — a file from the HyperFrames bundled library (Pixabay licence,
+#                                  audio/sfx/hf/CREDITS.md), copied into audio/sfx/hf/
+#   source: synth                — synthesized by pipeline/synth_sfx.py → audio/sfx/synth/
+# `file` overrides the path; `lead_s` = time from file start to the sound's peak/transient, so a cue's
+# `at` is where the PEAK lands (the event starts lead_s earlier).
 #
-# Every sound is generated from the prompt below with an exact duration and saved as <name>.mp3.
 # Regenerate one sound:   npm run sfx -- impact_big
 # Change a sound:         edit its prompt here (e.g. "heavier", "shorter tail"), then regenerate it.
 # Regenerate everything:  npm run sfx -- --all
@@ -8,7 +14,9 @@
 # category: hit      → ducks the music under it in the mix (so impacts punch through)
 #           motion   → transitions (also ducks unless `duck: false`)
 #           texture  → sits on top of the music, no ducking
-# optional: trim_exact (cut/pad to duration_s), duck (override), shape_db [start, end] (gain curve)
+# optional: trim_exact (cut/pad to duration_s), duck (override), shape_db [start, end] (gain curve),
+#           skip_s (start this far into the file, short fade-in),
+#           trim_s (keep only this much of the file, 0.25 s fade-out)
 #
 # Global style guide for new sounds: premium, modern, clean tech motion design. Not cartoonish,
 # no comedic "boing"/"pop" sounds, no voices.
@@ -96,3 +104,65 @@ sounds:
     prompt: >
       Soft deep sub pulse with a gentle glassy shimmer on top: a satisfying settle / confirmation
       sound. Clean premium tech UI sound design.
+
+  # ---- HyperFrames bundled library (offline, deterministic) ------------------------------------
+  hf_impact_small:
+    source: hyperframes
+    file: audio/sfx/hf/impact-bass-1.mp3
+    category: hit
+    lead_s: 0.05
+    trim_s: 0.6               # the file is a 2 s sustained sub boom; keep only the hit
+    note: bass impact, short, for the small burst
+  hf_impact_medium:
+    source: hyperframes
+    file: audio/sfx/hf/impact-bass-1.mp3
+    category: hit
+    lead_s: 0.05
+    trim_s: 0.9
+    note: same impact, longer tail + more gain, for the medium burst
+  hf_impact_big:
+    source: hyperframes
+    file: audio/sfx/hf/impact-bass-2.mp3
+    category: hit
+    lead_s: 0.02              # hits at the start of the file, then a sustained sub rumble
+    trim_s: 1.6
+    note: heavier sub impact for the final burst
+  hf_whoosh:
+    source: hyperframes
+    file: audio/sfx/hf/whoosh-short.mp3
+    category: motion
+    lead_s: 0.16
+  hf_tick:
+    source: hyperframes
+    file: audio/sfx/hf/key-press.mp3
+    category: texture
+    lead_s: 0.07
+    note: soft single tick (dots, segment lights)
+  hf_click:
+    source: hyperframes
+    file: audio/sfx/hf/click.mp3
+    category: texture
+    lead_s: 0.05
+    note: mouse click
+  hf_pop:
+    source: hyperframes
+    file: audio/sfx/hf/pop.mp3
+    category: texture
+    lead_s: 0.11
+  hf_shimmer:
+    source: hyperframes
+    file: audio/sfx/hf/sparkle.mp3
+    category: texture
+    lead_s: 0.02
+
+  # ---- synthesized (pipeline/synth_sfx.py) ---------------------------------------------------------
+  liquid_swell_soft:
+    source: synth
+    file: audio/sfx/synth/liquid_swell_soft.wav
+    category: texture
+    lead_s: 0
+  glitch_tick_soft:
+    source: synth
+    file: audio/sfx/synth/glitch_tick_soft.wav
+    category: texture
+    lead_s: 0

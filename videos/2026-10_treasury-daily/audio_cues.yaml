@@ -2,146 +2,254 @@
 # change a cue in shotlist.yaml, then `npm run cues && npm run mix`.
 video: 2026-10_treasury-daily
 fps: 30
-duration_ms: 8500
+duration_ms: 18133
 music:
-  file: audio/music/track_test.mp3
-  plan: audio/music/composition_plan_test.json
-  drop_ms: 4600
+  file: audio/music/track.mp3
+  drop_ms: 8067
   offset_ms: 0
   gain_db: 0
   build_ramp_db:
-    - 7
-    - 3
-  duck_db: 8
+    - 0
+    - 0
+  duck_db: 0
   duck_release_ms: 260
-  fade_out_ms:
-    - 7900
-    - 8500
+  fade_out_ms: null
+  sfx_headroom_db: 3
 master:
   loudness_lufs: -14
   true_peak_db: -1
 events:
-  - at_ms: 300
-    frame: 9
+  - at_ms: 1017
+    hit_ms: 1067
+    frame: 32
     shot: S01
-    cue: count_start
-    sound: glitch_tick
-    file: audio/sfx/glitch_tick.mp3
+    cue: burst_1
+    sound: hf_impact_small
+    file: audio/sfx/hf/impact-bass-1.mp3
+    gain_db: -19
+    category: hit
+    duck: true
+    trim_ms: 600
+  - at_ms: 2517
+    hit_ms: 2567
+    frame: 77
+    shot: S01
+    cue: burst_2
+    sound: hf_impact_medium
+    file: audio/sfx/hf/impact-bass-1.mp3
+    gain_db: -15
+    category: hit
+    duck: true
+    trim_ms: 900
+  - at_ms: 3547
+    hit_ms: 3567
+    frame: 107
+    shot: S01
+    cue: burst_3
+    sound: hf_impact_big
+    file: audio/sfx/hf/impact-bass-2.mp3
+    gain_db: -13
+    category: hit
+    duck: true
+    trim_ms: 1600
+  - at_ms: 3667
+    hit_ms: 3667
+    frame: 110
+    shot: S01
+    cue: label_reveal
+    sound: glitch_tick_soft
+    file: audio/sfx/synth/glitch_tick_soft.wav
     gain_db: -10
     category: texture
     duck: false
-  - at_ms: 300
-    frame: 9
-    shot: S01
-    cue: riser
-    sound: riser
-    file: audio/sfx/riser.mp3
-    gain_db: -3
+  - at_ms: 5107
+    hit_ms: 5267
+    frame: 158
+    shot: S02
+    cue: push_whoosh
+    sound: hf_whoosh
+    file: audio/sfx/hf/whoosh-short.mp3
+    gain_db: -12
     category: motion
-    duck: false
-    length_ms: 4300
-    ends_at_ms: 4600
-    shape_db:
-      - -8
-      - 8
-    note: 4.3s long, ends exactly on burst_3
-  - at_ms: 2100
-    frame: 63
-    shot: S01
-    cue: burst_1
-    sound: impact_small
-    file: audio/sfx/impact_small.mp3
-    gain_db: -4
-    category: hit
     duck: true
-  - at_ms: 3500
-    frame: 105
-    shot: S01
-    cue: burst_2
-    sound: impact_medium
-    file: audio/sfx/impact_medium.mp3
-    gain_db: -5
-    category: hit
-    duck: true
-  - at_ms: 4600
-    frame: 138
-    shot: S01
-    cue: burst_3
-    sound: impact_big
-    file: audio/sfx/impact_big.mp3
-    gain_db: 0
-    category: hit
-    duck: true
-  - at_ms: 4720
-    frame: 142
-    shot: S01
-    cue: label_reveal
-    sound: glitch_tick
-    file: audio/sfx/glitch_tick.mp3
+  - at_ms: 5633
+    hit_ms: 5633
+    frame: 169
+    shot: S02
+    cue: liquid_fill
+    sound: liquid_swell_soft
+    file: audio/sfx/synth/liquid_swell_soft.wav
     gain_db: -8
     category: texture
     duck: false
-  - at_ms: 5440
-    frame: 163
-    shot: S01
-    cue: whip
-    sound: whoosh
-    file: audio/sfx/whoosh.mp3
-    gain_db: -2
-    category: motion
-    duck: true
-    note: whoosh peak (+0.14s) lands on the fastest part of the whip ~5.58
-  - at_ms: 5600
-    frame: 168
+  - at_ms: 6067
+    hit_ms: 6067
+    frame: 182
     shot: S02
-    cue: arrows_latch
-    sound: latch
-    file: audio/sfx/latch.mp3
-    gain_db: -5
-    category: hit
-    duck: true
-  - at_ms: 5900
-    frame: 177
-    shot: S02
-    cue: pill_land
-    sound: impact_small
-    file: audio/sfx/impact_small.mp3
-    gain_db: -9
-    category: hit
-    duck: true
-  - at_ms: 5940
-    frame: 178
-    shot: S02
-    cue: label_reveal
-    sound: glitch_tick
-    file: audio/sfx/glitch_tick.mp3
-    gain_db: -9
+    cue: caption_reveal
+    sound: glitch_tick_soft
+    file: audio/sfx/synth/glitch_tick_soft.wav
+    gain_db: -10
     category: texture
     duck: false
-  - at_ms: 6000
-    frame: 180
-    shot: S02
-    cue: liquid_fill
-    sound: liquid_swell
-    file: audio/sfx/liquid_swell.mp3
+  - at_ms: 8497
+    hit_ms: 8567
+    frame: 257
+    shot: S03
+    cue: dot_1
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
+    gain_db: -2
+    category: texture
+    duck: false
+  - at_ms: 8763
+    hit_ms: 8833
+    frame: 265
+    shot: S03
+    cue: dot_2
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
+    gain_db: -2
+    category: texture
+    duck: false
+  - at_ms: 8997
+    hit_ms: 9067
+    frame: 272
+    shot: S03
+    cue: dot_3
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
+    gain_db: -2
+    category: texture
+    duck: false
+  - at_ms: 9307
+    hit_ms: 9467
+    frame: 284
+    shot: S04
+    cue: phone_rise
+    sound: hf_whoosh
+    file: audio/sfx/hf/whoosh-short.mp3
+    gain_db: -13
+    category: motion
+    duck: true
+  - at_ms: 9957
+    hit_ms: 10067
+    frame: 302
+    shot: S04
+    cue: bar_pop
+    sound: hf_pop
+    file: audio/sfx/hf/pop.mp3
+    gain_db: -8
+    category: texture
+    duck: false
+  - at_ms: 10973
+    hit_ms: 11133
+    frame: 334
+    shot: S05
+    cue: whip_in
+    sound: hf_whoosh
+    file: audio/sfx/hf/whoosh-short.mp3
+    gain_db: -14
+    category: motion
+    duck: true
+  - at_ms: 11263
+    hit_ms: 11333
+    frame: 340
+    shot: S05
+    cue: tue
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
     gain_db: -4
     category: texture
     duck: false
-  - at_ms: 7100
-    frame: 213
-    shot: S02
-    cue: fill_settle
-    sound: settle_pulse
-    file: audio/sfx/settle_pulse.mp3
-    gain_db: -5
+  - at_ms: 11497
+    hit_ms: 11567
+    frame: 347
+    shot: S05
+    cue: wed
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
+    gain_db: -4
     category: texture
     duck: false
-  - at_ms: 7200
-    frame: 216
-    shot: S02
-    cue: caption_reveal
-    sound: glitch_tick
-    file: audio/sfx/glitch_tick.mp3
-    gain_db: -7
+  - at_ms: 11763
+    hit_ms: 11833
+    frame: 355
+    shot: S05
+    cue: thu
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
+    gain_db: -4
     category: texture
     duck: false
+  - at_ms: 11997
+    hit_ms: 12067
+    frame: 362
+    shot: S05
+    cue: fri
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
+    gain_db: -4
+    category: texture
+    duck: false
+  - at_ms: 12263
+    hit_ms: 12333
+    frame: 370
+    shot: S05
+    cue: sat
+    sound: hf_tick
+    file: audio/sfx/hf/key-press.mp3
+    gain_db: -4
+    category: texture
+    duck: false
+  - at_ms: 12517
+    hit_ms: 12567
+    frame: 377
+    shot: S05
+    cue: sun_impact
+    sound: hf_impact_small
+    file: audio/sfx/hf/impact-bass-1.mp3
+    gain_db: -13
+    category: hit
+    duck: true
+    trim_ms: 600
+  - at_ms: 13473
+    hit_ms: 13633
+    frame: 409
+    shot: S06
+    cue: chart_swoosh
+    sound: hf_whoosh
+    file: audio/sfx/hf/whoosh-short.mp3
+    gain_db: -15
+    category: motion
+    duck: true
+  - at_ms: 15247
+    hit_ms: 15267
+    frame: 458
+    shot: S07
+    cue: shimmer
+    sound: hf_shimmer
+    file: audio/sfx/hf/sparkle.mp3
+    gain_db: -14
+    category: texture
+    duck: false
+  - at_ms: 16017
+    hit_ms: 16067
+    frame: 482
+    shot: S07
+    cue: click
+    sound: hf_click
+    file: audio/sfx/hf/click.mp3
+    gain_db: -6
+    category: texture
+    duck: false
+  - at_ms: 16573
+    hit_ms: 16733
+    frame: 502
+    shot: S08
+    cue: logo_whoosh
+    sound: hf_whoosh
+    file: audio/sfx/hf/whoosh-short.mp3
+    gain_db: -19
+    category: motion
+    duck: true

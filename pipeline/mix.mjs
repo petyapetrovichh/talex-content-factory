@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Stage: mix. Reads ONLY <video>/audio_cues.yaml and renders <video>/assets/audio/mix.wav:
-//   - music bed: aligned by the measured drop offset, build ramp into the drop, fade-out at the end,
-//     ducked (deterministic dip + exponential recovery) under every event with duck: true, so impacts punch through
+//   - music bed: aligned by the measured drop offset, optional build ramp into the drop, optional fade-out,
+//     optionally ducked (deterministic dip + exponential recovery) under every event with duck: true
+//   - SFX bus: optionally held under the music (music.sfx_headroom_db: SFX bus peak ≤ music peak − headroom)
 //   - every SFX placed at its exact cue time (+ gain, exact trim, optional gain shape)
 //   - master: loudness-normalised to master.loudness_lufs with a true-peak limiter
 // Then run `npm run build` so index.html picks up the mix.
@@ -35,8 +36,9 @@ const [r0, r1] = M.build_ramp_db;
 const align = M.offset_ms > 0 ? `atrim=start=${M.offset_ms / 1000},asetpts=PTS-STARTPTS,` : M.offset_ms < 0 ? `adelay=${-M.offset_ms}:all=1,` : "";
 f.push(
   `[${mi}:a]${align}aresample=${SR},aformat=channel_layouts=stereo,` +
-    `volume='if(lt(t,${drop}),pow(10,(${r0}+(${r1 - r0})*t/${drop})/20),1)':eval=frame,` +
-    `volume=${db(M.gain_db)},afade=t=out:st=${M.fade_out_ms[0] / 1000}:d=${(M.fade_out_ms[1] - M.fade_out_ms[0]) / 1000},` +
+    (r0 || r1 ? `volume='if(lt(t,${drop}),pow(10,(${r0}+(${r1 - r0})*t/${drop})/20),1)':eval=frame,` : "") +
+    `volume=${db(M.gain_db)},` +
+    (M.fade_out_ms ? `afade=t=out:st=${M.fade_out_ms[0] / 1000}:d=${(M.fade_out_ms[1] - M.fade_out_ms[0]) / 1000},` : "") +
     `apad,atrim=0:${dur}[music]`,
 );
 
@@ -46,6 +48,8 @@ for (const [i, e] of cues.events.entries()) {
   const k = add(e.file);
   const at = e.at_ms / 1000;
   let chain = `[${k}:a]aresample=${SR},aformat=channel_layouts=stereo`;
+  if (e.skip_ms) chain += `,atrim=start=${e.skip_ms / 1000},asetpts=PTS-STARTPTS,afade=t=in:d=0.04`;
+  if (e.trim_ms) chain += `,atrim=0:${e.trim_ms / 1000},afade=t=out:st=${Math.max(0, e.trim_ms / 1000 - 0.25)}:d=0.25`;
   if (e.length_ms) chain += `,apad,atrim=0:${e.length_ms / 1000},afade=t=out:st=${e.length_ms / 1000 - 0.006}:d=0.006`;
   if (e.shape_db) {
     const L = (e.length_ms || 3000) / 1000;
@@ -61,16 +65,34 @@ f.push(`${all.join("")}amix=inputs=${all.length}:normalize=0:dropout_transition=
 // and recovers exponentially (tau), instead of a level-dependent sidechain that long tails can pin down.
 const tau = (M.duck_release_ms ?? 260) / 1000;
 const terms = cues.events
-  .filter((e) => e.duck)
+  .filter((e) => e.duck && M.duck_db > 0)
   .map((e) => {
     const t0 = (e.at_ms - 12) / 1000; // start the dip a hair before the transient
     const w = (e.category === "hit" ? 1 : 0.6) * M.duck_db;
     return `if(gte(t,${t0}),${w.toFixed(2)}*exp(-(t-${t0})/${tau}),0)`;
   });
 f.push(terms.length ? `[music]volume='pow(10,-min(${M.duck_db},${terms.join("+")})/20)':eval=frame[musicd]` : `[music]anull[musicd]`);
-f.push(`[musicd][sfx]amix=inputs=2:normalize=0:dropout_transition=0,atrim=0:${dur}[mix]`);
 
-execFileSync("ffmpeg", ["-y", "-v", "error", ...inputs, "-filter_complex", f.join(";"), "-map", "[mix]", "-ar", String(SR), "-c:a", "pcm_s24le", pre]);
+// render the two buses separately so the SFX level can be checked against the music
+const busM = path.join(outDir, ".bus_music.wav"), busS = path.join(outDir, ".bus_sfx.wav");
+execFileSync("ffmpeg", ["-y", "-v", "error", ...inputs, "-filter_complex", f.join(";"),
+  "-map", "[musicd]", "-ar", String(SR), "-c:a", "pcm_s24le", busM,
+  "-map", "[sfx]", "-ar", String(SR), "-c:a", "pcm_s24le", busS]);
+const peakDb = (file) => {
+  const r = execFileSync("sh", ["-c", `ffmpeg -hide_banner -nostats -i "${file}" -af astats=measure_overall=Peak_level:measure_perchannel=none -f null - 2>&1 | grep -E "Peak level" | tail -1`]).toString();
+  return parseFloat(r.split(":").pop());
+};
+let sfxTrim = 0;
+const musicPeak = peakDb(busM), sfxPeak = peakDb(busS);
+if (M.sfx_headroom_db != null && sfxPeak > musicPeak - M.sfx_headroom_db) sfxTrim = musicPeak - M.sfx_headroom_db - sfxPeak;
+console.log(`buses: music peak ${musicPeak.toFixed(1)} dBFS, sfx peak ${sfxPeak.toFixed(1)} dBFS${sfxTrim ? ` → sfx trimmed ${sfxTrim.toFixed(1)} dB` : ""}`);
+execFileSync("ffmpeg", ["-y", "-v", "error", "-i", busM, "-i", busS, "-filter_complex",
+  `[1:a]volume=${sfxTrim.toFixed(2)}dB[s];[0:a][s]amix=inputs=2:normalize=0:dropout_transition=0,atrim=0:${dur}[mix]`,
+  "-map", "[mix]", "-ar", String(SR), "-c:a", "pcm_s24le", pre]);
+if (!process.env.KEEP_BUSES) {
+  fs.rmSync(busM, { force: true });
+  fs.rmSync(busS, { force: true });
+}
 
 // ---- loudness: measure → gain → true-peak limit, iterate (the limiter eats a little loudness)
 function measure(file) {
@@ -94,6 +116,6 @@ for (let pass = 0; pass < 4; pass++) {
   if (Math.abs(m.I - T.loudness_lufs) < 0.3) break;
 }
 fs.rmSync(pre, { force: true });
-const report = { file: rel(out), duration_s: dur, premix: { I: before.I, TP: before.TP }, master: { I: m.I, TP: m.TP, gain_db: +gain.toFixed(2) }, target: T };
+const report = { file: rel(out), duration_s: dur, buses: { music_peak_db: musicPeak, sfx_peak_db: sfxPeak, sfx_trim_db: +sfxTrim.toFixed(2) }, premix: { I: before.I, TP: before.TP }, master: { I: m.I, TP: m.TP, gain_db: +gain.toFixed(2) }, target: T };
 fs.writeFileSync(path.join(outDir, "mix.report.json"), JSON.stringify(report, null, 2) + "\n");
 console.log(`mix → ${rel(out)}  premix ${before.I} LUFS → master ${m.I} LUFS, true peak ${m.TP} dBTP (gain ${gain.toFixed(1)} dB)`);

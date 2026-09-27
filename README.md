@@ -11,4 +11,5 @@ npm run check                     # validate + hyperframes check
 npm run render                    # → videos/<slug>/output/*.mp4
 ```
 
-Current video: `videos/2026-10_treasury-daily/` (part-1 quality test, 2 shots).
+Current video: `videos/2026-10_treasury-daily/` — the full ≈18s TaleX Treasury announcement (8 shots,
+cut to `audio/music/track.mp3`) → `output/treasury_daily_v1.mp4`.

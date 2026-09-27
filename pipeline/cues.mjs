@@ -21,18 +21,22 @@ export function cueSheet(arg) {
       const snd = lib.sounds[c.sound];
       if (!snd) throw new Error(`${s.id}.${c.cue}: unknown sound ${c.sound}`);
       const duck = snd.duck ?? (snd.category === "hit" || snd.category === "motion");
+      const lead = snd.lead_s || 0; // `at` is where the sound's peak lands; the file starts lead_s earlier
       events.push({
-        at_ms: ms(c.at),
+        at_ms: ms(c.at - lead),
+        hit_ms: ms(c.at),
         frame: Math.round(c.at * fps),
         shot: s.id,
         cue: c.cue,
         sound: c.sound,
-        file: `audio/sfx/${c.sound}.mp3`,
+        file: snd.file || `audio/sfx/${c.sound}.mp3`,
         gain_db: c.gain_db ?? 0,
         category: snd.category,
         duck,
         ...(snd.trim_exact ? { length_ms: ms(snd.duration_s), ends_at_ms: ms(c.at) + ms(snd.duration_s) } : {}),
         ...(snd.shape_db ? { shape_db: snd.shape_db } : {}),
+        ...(snd.skip_s ? { skip_ms: ms(snd.skip_s) } : {}),
+        ...(snd.trim_s ? { trim_ms: ms(snd.trim_s) } : {}),
         ...(c.note ? { note: c.note } : {}),
       });
     }
@@ -54,7 +58,8 @@ export function cueSheet(arg) {
       build_ramp_db: m.music_build_ramp_db ?? [0, 0],
       duck_db: m.duck_db ?? 8,
       duck_release_ms: m.duck_release_ms ?? 260,
-      fade_out_ms: (m.music_fade_out ?? [v.duration - 0.5, v.duration]).map(ms),
+      fade_out_ms: m.music_fade_out === null ? null : (m.music_fade_out ?? [v.duration - 0.5, v.duration]).map(ms),
+      sfx_headroom_db: m.sfx_headroom_db ?? null,
     },
     master: { loudness_lufs: m.loudness_lufs ?? -14, true_peak_db: m.true_peak_db ?? -1 },
     events,

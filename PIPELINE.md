@@ -6,9 +6,13 @@ A free, reusable production pipeline for short TaleX announcement videos:
 `reference/higgsfield/` (read `STYLE_NOTES.md` before designing anything new).
 
 ```
-brief ──▶ shotlist ──▶ scenes ──▶ review ──▶ audio (cues → sfx → music → mix) ──▶ render
-brief.md   shotlist.yaml  scenes/*.html  review/*.png   audio_cues.yaml, audio/…          output/*.mp4
+(music) ──▶ brief ──▶ shotlist ──▶ scenes ──▶ review ──▶ audio (cues → sfx → mix) ──▶ render
+beats.json  brief.md   shotlist.yaml  scenes/*.html  review/*.png   audio_cues.yaml, mix.wav   output/*.mp4
 ```
+
+When a soundtrack is given, **the music is the clock**: analyse it first (`npm run beats -- <track>`),
+then write the shotlist on its beat grid (every cut, burst and reveal on a beat or eighth; the drop gets
+its own cut). The video ends when the track ends.
 
 ## Layout
 
@@ -19,11 +23,16 @@ brand/
   talex-x-mark*.svg      the X mark (two-tone / mono), cut from the wordmark
   fonts/                 Archivo variable (OFL) — heavy grotesk, tabular figures
 audio/
-  sfx/prompts.yaml       the brand sound library: one prompt + duration per sound
-  sfx/*.mp3              generated sounds
-  music/                 generated tracks + their composition plans (*.json)
+  sfx/prompts.yaml       the brand sound library index — three sources:
+                           elevenlabs (prompt + duration → sfx/<name>.mp3),
+                           hyperframes (bundled Pixabay files → sfx/hf/, CREDITS.md),
+                           synth (pipeline/synth_sfx.py → sfx/synth/)
+                         per sound: category, lead_s (file start → peak), trim_s, skip_s, shape_db …
+  music/                 soundtracks (+ <track>.beats.json from `npm run beats`), generated tracks + composition plans
 pipeline/                the stages (node, run via npm scripts)
-  runtime/talex-fx.js    seek-safe FX used by every scene (count-up, glitch reveal, sparks, rings, shake, RGB split)
+  runtime/talex-fx.js    seek-safe FX used by every scene (count-up, glitch reveal with highlight words, sparks,
+                         rings, shake, RGB split, speed streaks, velocity motion blur `blurMove`, `tween`)
+  synth_sfx.py           synthesizes sounds no library has (liquid swell, glitch tick)
   runtime/vendor/        GSAP (vendored: the render browser never depends on a CDN)
 reference/higgsfield/    quality reference
 videos/<yyyy-mm_slug>/
@@ -45,13 +54,15 @@ CSS variables (`--tx-green`, `--tx-violet`, …).
 
 | Command | Stage |
 | --- | --- |
+| `npm run beats -- audio/music/<track>.mp3` | beat grid + BPM + DROP (frame) of a soundtrack → `<track>.beats.json` |
 | `npm run build` | shotlist + brief + tokens → `index.html`, copies brand assets into the video |
 | `npm run review [-- S02]` | snapshots the assembled video at each shot's `review_at` times → `review/<ID>_<name>_contact.png` |
 | `npm run cues` | shotlist sfx cues → `audio_cues.yaml` (run after the picture is locked) |
-| `npm run sfx [-- name …]` | generate missing sounds (or the named ones) from `audio/sfx/prompts.yaml` |
+| `npm run sfx [-- name …]` | generate missing ElevenLabs sounds (or the named ones) from `audio/sfx/prompts.yaml` |
+| `npm run synth` | re-synthesize `audio/sfx/synth/*` |
 | `npm run sfx -- riser --takes 4` | generate candidates in `audio/sfx/_takes/` to compare |
 | `npm run music -- audio/music/<plan>.json [--takes N]` | generate music from a composition plan |
-| `npm run mix` | `audio_cues.yaml` → `assets/audio/mix.wav` at −14 LUFS / −1 dBTP |
+| `npm run mix` | `audio_cues.yaml` → `assets/audio/mix.wav` at −14 LUFS / −1 dBTP (`KEEP_BUSES=1` keeps the music/SFX buses for level checks) |
 | `npm run render [-- S01]` | solo shot MP4s + the combined cut → `output/` |
 | `npm run check` | rebuild, validate shotlist ↔ sound library ↔ cue sheet, `hyperframes check` (lint, runtime, layout, contrast) |
 | `npm run preview` | open HyperFrames Studio on the video |
@@ -62,11 +73,14 @@ All commands default to the newest `videos/*`; pick another with `VIDEO=2026-11_
 
 1. **Brief** — `videos/<slug>/brief.md`. Goal, tone, and the `yaml copy` block (numbers, labels,
    headlines, captions). Nothing on screen may be typed anywhere else.
-2. **Shotlist** — `shotlist.yaml`, written before any scene. All times are global seconds (30 fps).
+2. **Shotlist** — `shotlist.yaml`, written before any scene. All times are global seconds (30 fps);
+   `pipeline/lib.mjs` snaps every time field (`start/end/at/tail/…_at/review_at`) to the frame grid, so
+   `8.067` means exactly frame 242 (a cut never lands a frame late).
    Each shot: `id, start, end, background, visual, motion, camera, text (brief keys), sfx (cue, sound,
    at, gain_db), transition_out`, plus shot-specific parameters the scene reads (counter segments,
    bursts, arrow timings, pill geometry…). `tail` lets a shot keep rendering under the next one for a
-   transition. `review_at` picks the contact-sheet frames.
+   transition (the next shot's root is transparent where the tail must show through). `review_at` picks the
+   contact-sheet frames. Put the beat analysis in `video.beats` and the mix policy in `video.mix`.
 3. **Scenes** — `scenes/<ID>_<name>.html`, one HyperFrames sub-composition per shot, using
    `brand/tokens.json` and `TalexFX`. Every frame is a pure function of timeline time (seekable,
    deterministic). `npm run build` wires them into `index.html` from the shotlist.
@@ -77,8 +91,11 @@ All commands default to the newest `videos/*`; pick another with `VIDEO=2026-11_
    - `npm run music -- <plan>.json` → track from a composition plan whose chunks are cut to the
      timeline (the drop chunk starts on the hit). The measured drop is stored back in the plan and
      the mix aligns it.
-   - `npm run mix` → places every sound at its cue, ducks the music under hits, fades the music out,
-     normalizes to −14 LUFS with a −1 dBTP limiter. Settings: `shotlist.yaml → video.mix`.
+   - `npm run mix` → places every sound at its cue (the sound's peak lands on `at`), optionally ducks /
+     ramps / fades the music, keeps the SFX bus `sfx_headroom_db` under the music peak, normalizes to
+     −14 LUFS with a −1 dBTP limiter. Settings: `shotlist.yaml → video.mix`. When the track carries the
+     energy (a given soundtrack), use `duck_db: 0`, `music_fade_out: null` and keep every SFX at or under
+     the music level at its moment (check with `KEEP_BUSES=1 npm run mix`).
    - `npm run build` again so `index.html` includes the mix.
 6. **Render** — `npm run render`. Blur-heavy scenes render with `--workers 1` (`tokens.blur.render_workers`)
    because multi-worker renders can make animated blur flicker.

@@ -18,7 +18,8 @@ import { elevenlabs, probeDuration } from "./elevenlabs.mjs";
 
 const lib = YAML.parse(fs.readFileSync(path.join(REPO, "audio/sfx/prompts.yaml"), "utf8"));
 const args = process.argv.slice(2);
-const all = Object.keys(lib.sounds);
+// only ElevenLabs-sourced sounds are generated here (hyperframes/synth sounds are files in the repo)
+const all = Object.keys(lib.sounds).filter((n) => (lib.sounds[n].source || "elevenlabs") === "elevenlabs");
 const takesIx = args.indexOf("--takes");
 const takes = takesIx >= 0 ? parseInt(args.splice(takesIx, 2)[1], 10) : 0;
 const names = args.includes("--all") ? all : args.filter((a) => !a.startsWith("--")).length ? args.filter((a) => !a.startsWith("--")) : all.filter((n) => !fs.existsSync(path.join(REPO, "audio/sfx", `${n}.mp3`)));

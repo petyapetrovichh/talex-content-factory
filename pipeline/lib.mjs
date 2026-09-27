@@ -55,11 +55,27 @@ export function ref(copy, key) {
   return v;
 }
 
+/** Snap every time field (start/end/at/tail/…_at/review_at) to the fps frame grid, so a cut written as
+ *  8.067 lands exactly ON frame 242 (8.0666…) instead of one frame late. */
+const TIME_KEY = /^(start|end|at|tail|land|review_at|drop)$|_at$/;
+export function snapTimes(node, fps, key = "") {
+  if (Array.isArray(node)) return node.map((v) => snapTimes(v, fps, key));
+  if (node && typeof node === "object") {
+    for (const k of Object.keys(node)) node[k] = snapTimes(node[k], fps, k);
+    return node;
+  }
+  if (typeof node === "number" && TIME_KEY.test(key)) return Math.round(node * fps) / fps;
+  return node;
+}
+
 export function loadVideo(arg) {
   const dir = resolveVideoDir(arg);
   const tokens = loadTokens();
   const copy = loadCopy(dir);
   const shotlist = loadShotlist(dir);
+  const fps = shotlist.video.fps || tokens.format.fps;
+  snapTimes(shotlist.shots, fps);
+  if (shotlist.video.duration) shotlist.video.duration = Math.round(shotlist.video.duration * fps) / fps;
   for (const s of shotlist.shots) {
     for (const t of s.text || []) ref(copy, t.key); // fail fast on a missing copy key
     if (s.counter) {

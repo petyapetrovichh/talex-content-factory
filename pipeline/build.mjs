@@ -30,7 +30,9 @@ export function build(arg) {
     ["brand/talex-x-mark.svg", "brand/talex-x-mark.svg"],
     ["brand/talex-x-mark-mono.svg", "brand/talex-x-mark-mono.svg"],
     ["brand/talex-logo.svg", "brand/talex-logo.svg"],
+    ["brand/talex-logo-dark.svg", "brand/talex-logo-dark.svg"],
     ["pipeline/runtime/vendor/gsap.min.js", "vendor/gsap.min.js"],
+    ["pipeline/runtime/talex-fx.js", "vendor/talex-fx.js"],
   ];
   for (const [src, dst] of copies) {
     const a = fs.readFileSync(path.join(REPO, src));
@@ -38,11 +40,18 @@ export function build(arg) {
     if (!fs.existsSync(out) || !a.equals(fs.readFileSync(out))) fs.writeFileSync(out, a);
   }
   const xMarkPaths = [...fs.readFileSync(path.join(REPO, "brand/talex-x-mark.svg"), "utf8").matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]);
+  // full logo lockup as path data so scenes can draw it inline (deterministic, recolorable):
+  // paths[0] = wordmark (white on dark / black on light), paths[1] = green mark part
+  const logoSvg = fs.readFileSync(path.join(REPO, "brand/talex-logo.svg"), "utf8");
+  const logo = {
+    viewBox: logoSvg.match(/viewBox="([^"]+)"/)[1],
+    paths: [...logoSvg.matchAll(/<path d="([^"]+)" fill="([^"]+)"/g)].map((m) => ({ d: m[1], fill: m[2] })),
+  };
 
   // 2. data handed to scenes
   const shots = {};
   for (const s of shotlist.shots) shots[s.id] = s;
-  const data = { video: v, copy, tokens, shots, brand: { xMarkViewBox: "272 0 98 66", xMarkPaths } };
+  const data = { video: v, copy, tokens, shots, brand: { xMarkViewBox: "272 0 98 66", xMarkPaths, logo } };
 
   const c = tokens.colors;
   const cssVars = [
@@ -64,7 +73,6 @@ export function build(arg) {
     `--tx-vignette:${tokens.glow.vignette}`,
   ].join(";");
 
-  const fxLib = fs.readFileSync(path.join(REPO, "pipeline/runtime/talex-fx.js"), "utf8");
   const W = v.width, H = v.height;
 
   const head = (title) => `<!doctype html>
@@ -92,9 +100,7 @@ export function build(arg) {
     <script id="talex-data">
       window.__TALEX__ = ${JSON.stringify(data)};
     </script>
-    <script id="talex-fx">
-${fxLib}
-    </script>
+    <script src="assets/vendor/talex-fx.js"></script>
   </head>`;
 
   const slot = (s, start, track) => {
