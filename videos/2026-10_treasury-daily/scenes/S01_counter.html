@@ -1,0 +1,345 @@
+<!doctype html>
+<!--
+  S01 — COUNTER. Black background, big bloom-green number re-counting $0 → number_value
+  with three escalating bursts, then the label glitch-reveals, then a whip out to the left.
+  Copy comes from brief.md, timing from shotlist.yaml (window.__TALEX__, injected by pipeline/build.mjs).
+-->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template id="S01_counter-template">
+      <style>
+        @font-face {
+          font-family: "Archivo";
+          src: url("assets/fonts/Archivo-Variable.woff2") format("woff2");
+          font-weight: 100 900;
+          font-stretch: 62% 125%;
+          font-display: block;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: var(--tx-black);
+          font-family: "Archivo", sans-serif;
+        }
+        #s01-bg,
+        #s01-cam,
+        #s01-shake,
+        #s01-streaks,
+        #s01-flash,
+        #s01-fade,
+        #s01-vignette {
+          position: absolute;
+          inset: 0;
+        }
+        #s01-bg {
+          overflow: hidden;
+        }
+        .s01-blob {
+          position: absolute;
+          border-radius: 50%;
+          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.24), rgba(80, 150, 0, 0.09) 55%, rgba(111, 240, 0, 0) 100%);
+        }
+        #s01-blob-a { left: -260px; top: -300px; width: 1100px; height: 900px; }
+        #s01-blob-b { left: 700px; top: 520px; width: 1000px; height: 800px; }
+        #s01-blob-c { left: 320px; top: 140px; width: 800px; height: 700px; opacity: 0.7; }
+        #s01-vignette {
+          background: var(--tx-vignette);
+          pointer-events: none;
+        }
+        #s01-flare-wrap {
+          position: absolute;
+          inset: 0;
+        }
+        #s01-flare {
+          position: absolute;
+          opacity: 0.45;
+          left: 170px;
+          top: 230px;
+          width: 1100px;
+          height: 540px;
+          border-radius: 50%;
+          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.42), rgba(111, 240, 0, 0.12) 50%, rgba(111, 240, 0, 0) 100%);
+          mix-blend-mode: screen;
+        }
+        #s01-group {
+          position: absolute;
+          inset: 0;
+          filter: url(#s01-hblur);
+        }
+        #s01-numwrap {
+          position: absolute;
+          left: 0;
+          top: 330px;
+          width: 100%;
+          height: 330px;
+        }
+        .s01-numtext {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 250px;
+          line-height: 1;
+          font-weight: var(--tx-display-weight);
+          font-stretch: var(--tx-display-stretch);
+          letter-spacing: -0.01em;
+          font-variant-numeric: tabular-nums;
+          font-feature-settings: "tnum" 1;
+          white-space: nowrap;
+          color: var(--tx-green);
+        }
+        #s01-num {
+          text-shadow: var(--tx-bloom);
+        }
+        #s01-bloom {
+          filter: blur(26px);
+          opacity: 0.5;
+        }
+        .s01-split {
+          opacity: 0;
+          mix-blend-mode: screen;
+        }
+        #s01-split-v { color: var(--tx-violet); }
+        #s01-split-g { color: var(--tx-green-hot); }
+        .s01-ghost {
+          opacity: 0;
+          mix-blend-mode: screen;
+        }
+        #s01-label {
+          position: absolute;
+          left: 0;
+          top: 690px;
+          width: 100%;
+          text-align: center;
+          font-size: 50px;
+          line-height: 1;
+          font-weight: var(--tx-caption-weight);
+          font-stretch: var(--tx-caption-stretch);
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--tx-white);
+        }
+        .s01-ring {
+          position: absolute;
+          left: 590px;
+          top: 365px;
+          width: 260px;
+          height: 260px;
+          border-radius: 50%;
+          border: 3px solid var(--tx-green);
+          box-shadow: 0 0 18px rgba(111, 240, 0, 0.8), inset 0 0 18px rgba(111, 240, 0, 0.6);
+          opacity: 0;
+        }
+        #s01-sparks {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+        }
+        .s01-streak {
+          position: absolute;
+          border-radius: 6px;
+          opacity: 0;
+        }
+        #s01-flash {
+          background: var(--tx-white);
+          opacity: 0;
+        }
+        #s01-flash2 {
+          position: absolute;
+          left: -180px;
+          top: -390px;
+          width: 1800px;
+          height: 1800px;
+          border-radius: 50%;
+          background: radial-gradient(closest-side, rgba(255, 255, 255, 1) 0%, rgba(214, 255, 170, 0.85) 22%, rgba(111, 240, 0, 0.35) 50%, rgba(111, 240, 0, 0) 100%);
+          mix-blend-mode: screen;
+          opacity: 0;
+        }
+        #s01-fade {
+          background: var(--tx-black);
+        }
+      </style>
+
+      <div id="root" data-composition-id="S01_counter" data-width="1440" data-height="1080">
+        <svg width="0" height="0" style="position: absolute">
+          <filter id="s01-hblur" x="-60%" y="-20%" width="220%" height="140%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s01-hblur-fe" stdDeviation="0 0" />
+          </filter>
+        </svg>
+
+        <div id="s01-bg" data-layout-allow-overflow="true">
+          <div class="s01-blob" id="s01-blob-a"></div>
+          <div class="s01-blob" id="s01-blob-b"></div>
+          <div class="s01-blob" id="s01-blob-c"></div>
+          <div id="s01-vignette"></div>
+        </div>
+
+        <div id="s01-cam">
+          <div id="s01-shake">
+            <div id="s01-flare-wrap"><div id="s01-flare"></div></div>
+            <div class="s01-ring" id="s01-ring-0"></div>
+            <div class="s01-ring" id="s01-ring-1"></div>
+            <div class="s01-ring" id="s01-ring-2"></div>
+            <div class="s01-ring" id="s01-ring-3"></div>
+            <div id="s01-sparks"></div>
+            <div id="s01-group">
+              <div id="s01-numwrap">
+                <div class="s01-numtext s01-ghost" id="s01-ghost-0" data-layout-allow-overlap="true"></div>
+                <div class="s01-numtext s01-ghost" id="s01-ghost-1" data-layout-allow-overlap="true"></div>
+                <div class="s01-numtext s01-ghost" id="s01-ghost-2" data-layout-allow-overlap="true"></div>
+                <div class="s01-numtext" id="s01-bloom" data-layout-allow-overlap="true"></div>
+                <div class="s01-numtext s01-split" id="s01-split-v" data-layout-allow-overlap="true"></div>
+                <div class="s01-numtext s01-split" id="s01-split-g" data-layout-allow-overlap="true"></div>
+                <div class="s01-numtext" id="s01-num" data-layout-allow-overlap="true"></div>
+              </div>
+              <div id="s01-label" data-layout-allow-overlap="true"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="s01-streaks"></div>
+        <div id="s01-flash2"></div>
+        <div id="s01-flash"></div>
+        <div id="s01-fade"></div>
+      </div>
+
+      <script>
+        (function () {
+          const D = window.__TALEX__;
+          const FX = window.TalexFX;
+          const S = D.shots.S01;
+          const T = D.tokens;
+          const C = T.colors;
+          const copy = D.copy;
+          const L = (t) => +(t - S.start).toFixed(4); // global shotlist time → scene-local time
+          const $ = (id) => document.getElementById(id);
+          const hash = FX.hash;
+
+          const tl = gsap.timeline({ paused: true });
+          const W = 1440;
+          const CX = 720;
+          const CY = 495; // optical center of the number
+
+          // ---------- counter: plain re-count, value updates every frame ----------
+          const segs = S.counter.segments.map((g) => ({ ...g, start: L(g.start), end: L(g.end) }));
+          const numEls = ["s01-num", "s01-bloom", "s01-split-v", "s01-split-g", "s01-ghost-0", "s01-ghost-1", "s01-ghost-2"].map($);
+          let lastText = "";
+          const setNum = (text) => {
+            if (text === lastText) return;
+            lastText = text;
+            numEls.forEach((el) => (el.textContent = text));
+          };
+          const final = copy.number_value;
+          const tailEnd = L(S.end + (S.tail || 0));
+          setNum(FX.formatNumber(segs[0].from, copy.number_prefix));
+          FX.driver(tl, 0, tailEnd, (t) => setNum(FX.formatNumber(Math.min(final, FX.counterValue(segs, t)), copy.number_prefix)));
+
+          // ---------- opening + living background (never static) ----------
+          tl.fromTo("#s01-fade", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: T.easing.fade }, 0);
+          tl.fromTo("#s01-numwrap", { scale: 0.94 }, { scale: 1, duration: 0.5, ease: T.easing.punch_out }, 0);
+          tl.fromTo("#s01-blob-a", { x: 0, y: 0 }, { x: 180, y: 90, duration: tailEnd, ease: T.easing.glide }, 0);
+          tl.fromTo("#s01-blob-b", { x: 0, y: 0 }, { x: -220, y: -120, duration: tailEnd, ease: T.easing.glide }, 0);
+          tl.fromTo("#s01-blob-c", { x: 0, y: 0, scale: 0.9 }, { x: -60, y: 40, scale: 1.15, duration: tailEnd, ease: T.easing.glide }, 0);
+          const lastBurst = L(S.bursts[S.bursts.length - 1].at);
+          tl.fromTo("#s01-bg", { opacity: 0.55 }, { opacity: 1, duration: lastBurst, ease: "power2.in" }, 0);
+          // camera push-in while counting (tension)
+          tl.fromTo("#s01-cam", { scale: 1 }, { scale: 1.06, duration: lastBurst - L(segs[0].start), ease: "sine.in" }, L(segs[0].start));
+          // bloom grows with the count rate
+          tl.fromTo("#s01-flare-wrap", { opacity: 0.45, scale: 0.9 }, { opacity: 1, scale: 1, duration: lastBurst, ease: "power2.in" }, 0);
+
+          // ---------- bursts (each bigger than the previous) ----------
+          const flareLevel = { small: [0.75, 1.15], medium: [0.9, 1.4], max: [1, 1.9] };
+          let ringIx = 0;
+          S.bursts.forEach((b, bi) => {
+            const at = L(b.at);
+            const k = bi + 1; // intensity 1..3
+            // scale punch 1 → b.scale → 1
+            tl.fromTo("#s01-numwrap", { scale: 1 }, { scale: b.scale, duration: 0.07, ease: T.easing.punch_in, immediateRender: false }, at);
+            tl.to("#s01-numwrap", { scale: 1, duration: 0.5 + 0.1 * k, ease: T.easing.settle }, at + 0.07);
+            // number heats up (green → hot) then cools
+            tl.fromTo("#s01-num", { color: k === 3 ? C.white : C.green_hot }, { color: C.green, duration: 0.35 + 0.15 * k, ease: "power2.out", immediateRender: false }, at);
+            // glow flare
+            const [fo, fs] = flareLevel[b.flare];
+            tl.fromTo("#s01-flare", { opacity: fo, scale: fs }, { opacity: 0.4 + 0.08 * k, scale: 1 + 0.03 * k, duration: 0.7, ease: "power2.out", immediateRender: false }, at);
+            tl.fromTo("#s01-bloom", { opacity: 1, scale: 1 + 0.05 * k }, { opacity: 0.5 + 0.07 * k, scale: 1, duration: 0.6, ease: "power2.out", immediateRender: false }, at);
+            // shockwave ring(s)
+            for (let r = 0; r < b.rings; r++) {
+              const el = $(`s01-ring-${ringIx++}`);
+              el.style.borderWidth = `${b.ring_stroke_px || 3}px`;
+              FX.ring(tl, el, { at: at + r * 0.07, from: 0.5, to: b.ring_scale * (r ? 0.72 : 1), dur: 0.55 + 0.12 * k, opacity: 1 });
+            }
+            // sparks
+            FX.sparks(tl, $("s01-sparks"), {
+              at, count: b.sparks, cx: CX, cy: CY, r0: 90 + 20 * k, r1: 260 + 170 * k,
+              len: 30 + 18 * k, thick: 3 + k, dur: 0.45 + 0.12 * k, color: C.green_hot, seed: 11 * k,
+            });
+            // RGB split green/violet
+            if (b.rgb_split_frames) FX.rgbSplit(tl, [$("s01-split-v"), $("s01-split-g")], { at, frames: b.rgb_split_frames, px: b.rgb_split_px, fps: D.video.fps, seed: k });
+            // camera shake
+            if (b.shake_px) FX.shake(tl, $("s01-shake"), { at, amp: b.shake_px, dur: T.shake.decay_s + 0.1 * k, seed: 7 * k });
+            // white flash
+            if (b.white_flash_frames) {
+              const f = b.white_flash_frames / D.video.fps;
+              // hard white for N frames, then a radial bloom burst decays (brightens, never greys)
+              tl.fromTo("#s01-flash", { opacity: 1 }, { opacity: 1, duration: f - 0.001, ease: "none", immediateRender: false }, at);
+              tl.set("#s01-flash", { opacity: 0 }, at + f - 0.001);
+              tl.fromTo("#s01-flash2", { opacity: 1, scale: 0.5 }, { opacity: 0, scale: 1.6, duration: 0.42, ease: "power2.out", immediateRender: false }, at + f - 0.001);
+            }
+          });
+
+          // ---------- settle + label glitch reveal ----------
+          tl.fromTo("#s01-flare", { opacity: 0.62 }, { opacity: 0.48, duration: L(S.transition_out.start) - lastBurst - 0.7, ease: T.easing.glide, immediateRender: false }, lastBurst + 0.7);
+          FX.glitchReveal(tl, $("s01-label"), copy.number_label, {
+            start: L(S.label_reveal.start), duration: S.label_reveal.duration, seed: 3,
+            color: C.white, flash: T.glitch_reveal.resolve_flash_on_black, charset: T.glitch_reveal.charset,
+            gap: T.glitch_reveal.gap_probability, step: T.glitch_reveal.step_s,
+          });
+          tl.fromTo("#s01-label", { y: 14 }, { y: 0, duration: 0.4, ease: T.easing.snap }, L(S.label_reveal.start));
+
+          // ---------- transition_out: whip LEFT with heavy horizontal blur + ghosts + streaks ----------
+          const w0 = L(S.transition_out.start);
+          const wd = S.transition_out.end - S.transition_out.start;
+          tl.to("#s01-group", { x: -2100, duration: wd * 0.56, ease: "power2.in" }, w0);
+          const fe = $("s01-hblur-fe");
+          FX.driver(tl, w0 - 0.001, wd, (t, p) => {
+            const b = p <= 0 ? 0 : T.blur.whip_max_px * Math.min(1, Math.pow(p / 0.4, 1.4));
+            fe.setAttribute("stdDeviation", `${b.toFixed(1)} 0`);
+          });
+          const ghostColors = [C.violet, C.green, C.violet];
+          [0, 1, 2].forEach((i) => {
+            const g = $(`s01-ghost-${i}`);
+            g.style.color = ghostColors[i];
+            tl.fromTo(g, { x: 0, opacity: 0 }, { x: 90 + i * 110, opacity: 0.55 - i * 0.14, duration: wd * 0.45, ease: "power2.in", immediateRender: false }, w0 + 0.02);
+          });
+          // camera pans right: background slides left, bloom smears
+          tl.to("#s01-bg", { x: -700, duration: wd, ease: T.easing.whip }, w0);
+          tl.to("#s01-flare", { x: -900, scaleX: 1.8, opacity: 0.2, duration: wd * 0.8, ease: T.easing.whip }, w0);
+          // speed streaks — thin violet/green bars racing left
+          const streakLayer = $("s01-streaks");
+          for (let i = 0; i < 16; i++) {
+            const d = document.createElement("div");
+            d.className = "s01-streak";
+            const h = 2 + Math.round(hash(i * 3 + 1) * 5);
+            const w = 220 + hash(i * 5 + 2) * 620;
+            const y = 90 + hash(i * 7 + 3) * 900;
+            const col = i % 3 === 0 ? C.green : C.violet;
+            d.style.cssText += `left:0;top:${y}px;width:${w}px;height:${h}px;background:${col};box-shadow:0 0 12px ${col};`;
+            streakLayer.appendChild(d);
+            const s0 = w0 - 0.04 + hash(i * 11 + 4) * 0.28;
+            const dur = 0.16 + hash(i * 13 + 5) * 0.14;
+            tl.fromTo(d, { x: W + 40, opacity: 0.95 }, { x: -w - 60, opacity: 0.95, duration: dur, ease: "none", immediateRender: false }, s0);
+          }
+
+          window.__timelines["S01_counter"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

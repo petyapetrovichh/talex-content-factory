@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+# HyperFrames scratch output (review/ and output/ are the committed locations)
+videos/*/renders/
+videos/*/snapshots/
+videos/*/.hyperframes/
+videos/*/.hf-*
+**/.debug/
+audio/sfx/_takes/
+audio/music/_takes/

@@ -1,0 +1,17 @@
+{
+  "file": "videos/2026-10_treasury-daily/assets/audio/mix.wav",
+  "duration_s": 8.5,
+  "premix": {
+    "I": -8,
+    "TP": 3.2
+  },
+  "master": {
+    "I": -14,
+    "TP": -2.8,
+    "gain_db": -6
+  },
+  "target": {
+    "loudness_lufs": -14,
+    "true_peak_db": -1
+  }
+}

@@ -1,0 +1,596 @@
+<!doctype html>
+<!--
+  S02 — ARROWS INTO THE $X TREASURY.
+  Transition: green arrows shoot right from where the number was, latch onto the incoming pill's
+  left edge and drag it to center while the white world pans in from the right (black → white).
+  Then the arrows flow into the pill, green liquid rises with a wave, a settle pulse, caption reveal.
+  Copy comes from brief.md, timing/geometry from shotlist.yaml (window.__TALEX__, via pipeline/build.mjs).
+  The slot starts at S02.start (global); this timeline runs in scene-local time.
+-->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template id="S02_treasury-template">
+      <style>
+        @font-face {
+          font-family: "Archivo";
+          src: url("assets/fonts/Archivo-Variable.woff2") format("woff2");
+          font-weight: 100 900;
+          font-stretch: 62% 125%;
+          font-display: block;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          font-family: "Archivo", sans-serif;
+        }
+        #s02-cam,
+        #s02-streaks {
+          position: absolute;
+          inset: 0;
+        }
+        #s02-white {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1440px;
+          height: 1080px;
+          background: var(--tx-white);
+          overflow: hidden;
+          filter: url(#s02-hblur-world);
+        }
+        #s02-dots {
+          position: absolute;
+          left: -80px;
+          top: -80px;
+          width: 1600px;
+          height: 1240px;
+          background-image: radial-gradient(circle, rgba(0, 0, 0, 0.13) 1.7px, rgba(0, 0, 0, 0) 2.2px);
+          background-size: 34px 34px;
+          -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% 46%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 1) 100%);
+          mask-image: radial-gradient(ellipse 70% 62% at 50% 46%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 1) 100%);
+        }
+        .s02-blob {
+          position: absolute;
+          border-radius: 50%;
+          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.2), rgba(111, 240, 0, 0.06) 55%, rgba(111, 240, 0, 0) 100%);
+        }
+        #s02-blob-a { left: -300px; top: 520px; width: 1000px; height: 800px; }
+        #s02-blob-b { left: 900px; top: -340px; width: 900px; height: 760px; }
+        #s02-edge {
+          position: absolute;
+          left: -10px;
+          top: 0;
+          width: 26px;
+          height: 1080px;
+          background: linear-gradient(90deg, var(--tx-violet), var(--tx-green) 55%, rgba(111, 240, 0, 0));
+          opacity: 0;
+        }
+        #s02-arrows {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1440px;
+          height: 1080px;
+          overflow: visible;
+        }
+        #s02-arrow-glow {
+          filter: drop-shadow(0 0 8px rgba(111, 240, 0, 0.85)) drop-shadow(0 0 22px rgba(111, 240, 0, 0.45));
+        }
+        #s02-latch {
+          position: absolute;
+          inset: 0;
+        }
+        #s02-pillpos {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1440px;
+          height: 1080px;
+          filter: url(#s02-hblur-pill);
+        }
+        #s02-pillx {
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+        #s02-pill {
+          position: absolute;
+        }
+        .s02-echo {
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          border-style: solid;
+          opacity: 0;
+        }
+        #s02-glass {
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          overflow: hidden;
+          background: linear-gradient(180deg, var(--tx-glass-top) 0%, var(--tx-glass-bottom) 100%);
+          box-shadow: inset 0 12px 30px rgba(0, 0, 0, 0.07), inset 0 -10px 24px rgba(0, 0, 0, 0.05), 0 24px 60px rgba(0, 0, 0, 0.1);
+        }
+        #s02-liquid {
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+        #s02-content {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 30px;
+          padding: 0 60px;
+        }
+        #s02-xmark {
+          display: block;
+          height: 76px;
+          width: 113px;
+          flex: none;
+        }
+        .s02-headstack {
+          display: grid;
+        }
+        .s02-headline {
+          grid-area: 1 / 1;
+          font-size: 104px;
+          line-height: 1;
+          font-weight: var(--tx-display-weight);
+          font-stretch: var(--tx-display-stretch);
+          letter-spacing: -0.02em;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+          color: var(--tx-black);
+        }
+        .s02-headcopy {
+          opacity: 0;
+        }
+        #s02-gloss {
+          position: absolute;
+          left: 90px;
+          right: 90px;
+          top: 14px;
+          height: 30px;
+          border-radius: 30px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+          opacity: 0.7;
+        }
+        #s02-outline {
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          border: 3px solid var(--tx-black);
+        }
+        #s02-pulse {
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          border: 6px solid var(--tx-green);
+          opacity: 0;
+        }
+        #s02-label {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: -28px;
+          display: flex;
+          justify-content: center;
+        }
+        #s02-label-inner {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 0 22px;
+          height: 56px;
+          background: var(--tx-white);
+        }
+        #s02-label-mark {
+          display: block;
+          height: 30px;
+          width: 45px;
+        }
+        #s02-label-text {
+          font-size: 42px;
+          line-height: 1;
+          font-weight: 720;
+          font-stretch: 100%;
+          color: var(--tx-black);
+        }
+        #s02-caption {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          text-align: center;
+          font-size: 44px;
+          line-height: 1;
+          font-weight: var(--tx-caption-weight);
+          font-stretch: var(--tx-caption-stretch);
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+          color: var(--tx-black);
+        }
+        .s02-streak {
+          position: absolute;
+          border-radius: 6px;
+          opacity: 0;
+        }
+      </style>
+
+      <div id="root" data-composition-id="S02_treasury" data-width="1440" data-height="1080">
+        <svg width="0" height="0" style="position: absolute">
+          <filter id="s02-hblur-world" x="-10%" y="0%" width="120%" height="100%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s02-hblur-world-fe" stdDeviation="0 0" />
+          </filter>
+          <filter id="s02-hblur-pill" x="-20%" y="-10%" width="140%" height="120%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s02-hblur-pill-fe" stdDeviation="0 0" />
+          </filter>
+        </svg>
+
+        <div id="s02-cam" data-layout-allow-overflow="true">
+          <div id="s02-white" data-layout-allow-overflow="true">
+            <div id="s02-dots"></div>
+            <div class="s02-blob" id="s02-blob-a"></div>
+            <div class="s02-blob" id="s02-blob-b"></div>
+            <div id="s02-edge"></div>
+          </div>
+
+          <svg id="s02-arrows" viewBox="0 0 1440 1080">
+            <g id="s02-arrow-glow"></g>
+          </svg>
+
+          <div id="s02-pillpos">
+            <div id="s02-pillx">
+            <div id="s02-pill">
+              <div class="s02-echo" id="s02-echo-0"></div>
+              <div class="s02-echo" id="s02-echo-1"></div>
+              <div class="s02-echo" id="s02-echo-2"></div>
+              <div id="s02-glass">
+                <svg id="s02-liquid" data-layout-allow-overflow="true"></svg>
+                <div id="s02-content">
+                  <svg id="s02-xmark" viewBox="272 0 98 66"></svg>
+                  <div class="s02-headstack">
+                    <div class="s02-headline s02-headcopy" id="s02-head-v" data-layout-allow-overlap="true"></div>
+                    <div class="s02-headline s02-headcopy" id="s02-head-g" data-layout-allow-overlap="true"></div>
+                    <div class="s02-headline" id="s02-head" data-layout-allow-overlap="true"></div>
+                  </div>
+                </div>
+                <div id="s02-gloss"></div>
+              </div>
+              <div id="s02-outline"></div>
+              <div id="s02-pulse"></div>
+              <div id="s02-label">
+                <div id="s02-label-inner">
+                  <svg id="s02-label-mark" viewBox="272 0 98 66"></svg>
+                  <div id="s02-label-text"></div>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div id="s02-caption" data-layout-allow-overlap="true"></div>
+          </div>
+
+          <div id="s02-latch"></div>
+        </div>
+        <div id="s02-streaks"></div>
+      </div>
+
+      <script>
+        (function () {
+          const D = window.__TALEX__;
+          const FX = window.TalexFX;
+          const S = D.shots.S02;
+          const T = D.tokens;
+          const C = T.colors;
+          const copy = D.copy;
+          const hash = FX.hash;
+          const L = (t) => +(t - S.start).toFixed(4); // global → scene-local
+          const $ = (id) => document.getElementById(id);
+          const NS = "http://www.w3.org/2000/svg";
+          const svgEl = (tag, attrs, parent) => {
+            const e = document.createElementNS(NS, tag);
+            for (const k in attrs) e.setAttribute(k, attrs[k]);
+            if (parent) parent.appendChild(e);
+            return e;
+          };
+          const clamp01 = (x) => Math.max(0, Math.min(1, x));
+          const ease = (name) => gsap.parseEase(name);
+          const span = (t, a, b) => clamp01((t - a) / (b - a));
+          const tl = gsap.timeline({ paused: true });
+          const W = 1440;
+          const H = 1080;
+          const END = L(S.end);
+
+          // ---------- geometry from shotlist ----------
+          const P = S.pill;
+          const pw = P.width;
+          const ph = P.height;
+          const pr = ph / 2;
+          const pFinalLeft = (W - pw) / 2;
+          const pTop = P.center_y - ph / 2;
+          // translate lives on #s02-pillx (driver), scale on #s02-pill (GSAP) — never both on one node
+          const pillX = $("s02-pillx");
+          const pill = $("s02-pill");
+          pill.style.cssText += `left:0;top:${pTop}px;width:${pw}px;height:${ph}px;`;
+          $("s02-caption").style.top = `${pTop + ph + T.pill.caption_gap_px + 18}px`;
+
+          // copy
+          ["s02-head", "s02-head-v", "s02-head-g"].forEach((id) => ($(id).textContent = copy.s02_headline));
+          $("s02-head-v").style.color = C.violet;
+          $("s02-head-g").style.color = C.green;
+          // TaleX X mark (brand two-tone on the label, mono black inside the pool)
+          D.brand.xMarkPaths.forEach((d, i) => {
+            svgEl("path", { d, fill: i === 0 ? C.black : C.green }, $("s02-label-mark"));
+            svgEl("path", { d, fill: C.black }, $("s02-xmark"));
+          });
+
+          // ---------- scene-local times ----------
+          const A = S.arrows;
+          const tShoot0 = L(A.shoot.start), tShoot1 = L(A.shoot.end);
+          const tLatch = L(A.latch.at);
+          const tDrag0 = L(A.drag.start), tDrag1 = L(A.drag.end);
+          const tAbs0 = L(A.absorb.start), tAbs1 = L(A.absorb.end);
+          const tWall0 = L(S.white_wall.start), tWall1 = L(S.white_wall.end);
+          const tFill0 = L(S.fill.start), tFill1 = L(S.fill.end);
+          const tPulse = L(S.settle_pulse.at);
+
+          // pill left edge over time: slides in with the white world, then is DRAGGED by the arrows
+          const eDrag = ease(T.easing.drag);
+          const pillLeft = (t) => {
+            if (t < tLatch) {
+              const p = ease("power2.out")(span(t, tWall0, tLatch));
+              return P.enter_from_x + 260 * (1 - p);
+            }
+            return P.enter_from_x + (pFinalLeft - P.enter_from_x) * eDrag(span(t, tDrag0, tDrag1));
+          };
+          // x of the pill's rounded left contour at vertical offset dy from its center
+          const contour = (dy) => pr - Math.sqrt(Math.max(0, pr * pr - dy * dy));
+
+          // ---------- white world: camera pans right, black → white ----------
+          const eWall = ease("power3.inOut");
+          const wallX = (t) => W * (1 - eWall(span(t, tWall0, tWall1)));
+          const feWorld = $("s02-hblur-world-fe");
+          const fePill = $("s02-hblur-pill-fe");
+          const white = $("s02-white");
+          const edge = $("s02-edge");
+          const setWorld = (t) => {
+            white.style.translate = `${wallX(t).toFixed(1)}px 0px`;
+            const v = Math.abs(wallX(t + 1 / 60) - wallX(t - 1 / 60)) * 30; // px/s
+            feWorld.setAttribute("stdDeviation", `${Math.min(T.blur.whip_max_px, v / 90).toFixed(1)} 0`);
+            edge.style.opacity = t > tWall0 && t < tWall1 + 0.05 ? String(Math.min(1, v / 1500)) : "0";
+          };
+
+          // ---------- arrows ----------
+          const arrowG = $("s02-arrow-glow");
+          const arrows = [];
+          for (let i = 0; i < A.count; i++) {
+            const off = (i / (A.count - 1) - 0.5) * A.spread_px * 2 * 0.5;
+            const g = svgEl("g", {}, arrowG);
+            const line = svgEl("path", { fill: "none", stroke: C.green, "stroke-width": A.stroke_px, "stroke-linecap": "round" }, g);
+            const flow = svgEl("path", { fill: "none", stroke: C.green_hot, "stroke-width": A.stroke_px * 0.42, "stroke-linecap": "round", "stroke-dasharray": `2 ${22 + i * 3}` }, g);
+            const flow2 = svgEl("path", { fill: "none", stroke: C.white, "stroke-width": A.stroke_px * 0.3, "stroke-linecap": "round", "stroke-dasharray": `1 ${57 + i * 5}`, opacity: 0.9 }, g);
+            const head = svgEl("path", { fill: C.green, "stroke-linejoin": "round", stroke: C.green, "stroke-width": 4 }, g);
+            arrows.push({ i, off, g, line, flow, flow2, head, delay: i * 0.018 + hash(i + 3) * 0.02 });
+          }
+          const eShoot = ease("expo.out");
+          const eAbs = ease("power2.in");
+          const originX = A.shoot.from_x;
+          const originY = S.pill.center_y;
+          const drawArrows = (t) => {
+            const pl = pillLeft(t);
+            arrows.forEach((a) => {
+              if (t < tShoot0 + a.delay || t > tAbs1) {
+                a.g.setAttribute("opacity", "0");
+                return;
+              }
+              a.g.setAttribute("opacity", "1");
+              const yHead = originY + a.off;
+              const latchX = pl + contour(a.off) + 4;
+              let head, tail;
+              if (t < tLatch) {
+                const p = eShoot(span(t, tShoot0 + a.delay, tShoot1 + a.delay * 0.5));
+                head = originX + (latchX - originX) * p;
+                tail = originX - 60 - 380 * ease("power2.out")(span(t, tShoot0, tLatch));
+              } else {
+                head = latchX;
+                const pd = ease("power2.in")(span(t, tDrag0, tDrag1));
+                tail = originX - 440 - (originX - 440 + 120) * pd;
+                if (t > tAbs0) tail = -120 + (pFinalLeft + 40 + 120) * eAbs(span(t, tAbs0 + a.delay, tAbs1));
+              }
+              const yTail = originY + a.off * 0.35;
+              const len = Math.max(0, head - tail);
+              const hl = Math.min(A.head_px, len);
+              const hx = head - hl; // arrowhead base x
+              const ang = Math.atan2(yHead - yTail, head - tail);
+              const ux = Math.cos(ang), uy = Math.sin(ang);
+              const bx = head - ux * hl, by = yHead - uy * hl;
+              const nx = -uy * A.head_px * 0.62, ny = ux * A.head_px * 0.62;
+              const d = `M${tail.toFixed(1)} ${yTail.toFixed(1)} L${bx.toFixed(1)} ${by.toFixed(1)}`;
+              a.line.setAttribute("d", d);
+              a.flow.setAttribute("d", d);
+              a.flow2.setAttribute("d", d);
+              const flowOff = -(t * A.particles_flow_px_per_s);
+              a.flow.setAttribute("stroke-dashoffset", flowOff.toFixed(1));
+              a.flow2.setAttribute("stroke-dashoffset", (flowOff * 1.4).toFixed(1));
+              a.head.setAttribute("d", `M${(head + ux * 2).toFixed(1)} ${(yHead + uy * 2).toFixed(1)} L${(bx + nx).toFixed(1)} ${(by + ny).toFixed(1)} L${(bx - nx).toFixed(1)} ${(by - ny).toFixed(1)} Z`);
+            });
+          };
+
+          // ---------- liquid (one SVG, fully derived from t) ----------
+          const liq = $("s02-liquid");
+          liq.setAttribute("width", pw);
+          liq.setAttribute("height", ph);
+          liq.setAttribute("viewBox", `0 0 ${pw} ${ph}`);
+          const defs = svgEl("defs", {}, liq);
+          const grad = svgEl("linearGradient", { id: "s02-liq-grad", x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+          svgEl("stop", { offset: "0", "stop-color": C.green_hot }, grad);
+          svgEl("stop", { offset: "0.18", "stop-color": C.green }, grad);
+          svgEl("stop", { offset: "1", "stop-color": C.green_deep }, grad);
+          const back = svgEl("path", { fill: C.green_deep, opacity: 0.55 }, liq);
+          const front = svgEl("path", { fill: "url(#s02-liq-grad)" }, liq);
+          const meniscus = svgEl("path", { fill: "none", stroke: C.white, "stroke-width": 3, opacity: 0.55 }, liq);
+          const bubbles = [];
+          for (let i = 0; i < 18; i++) {
+            bubbles.push({
+              el: svgEl("circle", { r: 2.5 + hash(i * 5 + 1) * 5, fill: "rgba(255,255,255,0.25)", stroke: "rgba(255,255,255,0.8)", "stroke-width": 1.5 }, liq),
+              x: 80 + hash(i * 7 + 2) * (pw - 160),
+              speed: 50 + hash(i * 11 + 3) * 90,
+              ph: hash(i * 13 + 4) * ph,
+            });
+          }
+          const drops = [];
+          for (let i = 0; i < 26; i++) {
+            const lane = i % A.count;
+            drops.push({
+              el: svgEl("rect", { width: 16 + hash(i * 3 + 9) * 16, height: 7, rx: 3.5, fill: i % 5 === 0 ? C.green_hot : C.green }, liq),
+              y0: ph / 2 + arrows[lane].off,
+              x1: 140 + hash(i * 17 + 5) * (pw - 420),
+              t0: tAbs0 + 0.02 + (i / 26) * (tFill0 + 0.7 - tAbs0) + hash(i * 19 + 6) * 0.05,
+              dur: 0.34 + hash(i * 23 + 7) * 0.18,
+            });
+          }
+          const eFill = ease("sine.inOut");
+          const level = (t) => S.fill.level * eFill(span(t, tFill0, tFill1));
+          const amp = (t) => {
+            let a = S.fill.wave_px * (t < tFill0 ? 0 : t < tFill1 ? 1 : 0.55 + 0.45 * Math.exp(-(t - tFill1) * 2.5));
+            if (t > tPulse) a += S.fill.wave_px * 0.9 * Math.exp(-(t - tPulse) * 5) * Math.cos((t - tPulse) * 22);
+            return a;
+          };
+          const wavePath = (surf, a, phase, lambda, closed) => {
+            let d = "";
+            for (let x = -20; x <= pw + 20; x += 16) {
+              const y = surf + a * Math.sin(((x + phase) / lambda) * Math.PI * 2);
+              d += (d ? " L" : "M") + x + " " + y.toFixed(2);
+            }
+            return closed ? d + ` L${pw + 20} ${ph + 10} L-20 ${ph + 10} Z` : d;
+          };
+          const drawLiquid = (t) => {
+            const lv = level(t);
+            const a = amp(t);
+            const surf = ph - lv * ph + (lv > 0 ? 0 : a + 6);
+            front.setAttribute("d", wavePath(surf, a, t * 170, 300, true));
+            back.setAttribute("d", wavePath(surf - a * 0.6, a * 0.8, -t * 120 + 90, 230, true));
+            meniscus.setAttribute("d", wavePath(surf, a, t * 170, 300, false));
+            meniscus.setAttribute("opacity", lv > 0.01 ? "0.55" : "0");
+            bubbles.forEach((b) => {
+              const y = ph - (((t * b.speed + b.ph) % ph) + ph) % ph;
+              const vis = lv > 0.05 && y > surf + a + 8;
+              b.el.setAttribute("cx", (b.x + Math.sin(t * 3 + b.ph) * 6).toFixed(1));
+              b.el.setAttribute("cy", y.toFixed(1));
+              b.el.setAttribute("opacity", vis ? "1" : "0");
+            });
+            drops.forEach((d) => {
+              const p = span(t, d.t0, d.t0 + d.dur);
+              if (p <= 0 || p >= 1) {
+                d.el.setAttribute("opacity", "0");
+                return;
+              }
+              const x = -30 + (d.x1 + 30) * ease("power1.out")(p);
+              const yTarget = Math.max(surf + 4, ph * 0.35);
+              const y = d.y0 + (yTarget - d.y0) * ease("power2.in")(p);
+              d.el.setAttribute("x", x.toFixed(1));
+              d.el.setAttribute("y", y.toFixed(1));
+              d.el.setAttribute("opacity", (1 - Math.pow(p, 4)).toFixed(2));
+              d.el.setAttribute("transform", `rotate(${(ease("power2.in")(p) * 30).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})`);
+            });
+          };
+
+          // ---------- pill position + directional blur ----------
+          const echoes = [0, 1, 2].map((i) => $(`s02-echo-${i}`));
+          echoes.forEach((e, i) => {
+            e.style.borderColor = T.pill.echo.colors[i];
+            e.style.borderWidth = `${T.pill.echo.stroke_px[i]}px`;
+          });
+          const eEcho = ease(T.pill.echo.ease);
+          const tEcho0 = L(S.pill.echo_collapse.start), tEcho1 = L(S.pill.echo_collapse.end);
+          const placePill = (t) => {
+            const x = pillLeft(t);
+            pillX.style.translate = `${x.toFixed(1)}px 0px`;
+            const v = Math.abs(pillLeft(t + 1 / 60) - pillLeft(t - 1 / 60)) * 30;
+            fePill.setAttribute("stdDeviation", `${Math.min(T.blur.drag_max_px, v / 110).toFixed(1)} 0`);
+            // echo outlines trail to the right while moving, then collapse into the clean stroke
+            const grow = clamp01(span(t, tWall0, tDrag0 + 0.08));
+            const collapse = eEcho(span(t, tEcho0, tEcho1));
+            echoes.forEach((e, i) => {
+              const off = T.pill.echo.offset_px[i] * grow * (1 - collapse);
+              e.style.translate = `${off.toFixed(1)}px ${(off * 0.12).toFixed(1)}px`;
+              e.style.opacity = t > tWall0 && collapse < 1 ? (0.95 - i * 0.18).toFixed(2) : "0";
+            });
+          };
+
+          // one master driver for everything derived from t
+          const renderAll = (t) => {
+            setWorld(t);
+            drawArrows(t);
+            placePill(t);
+            drawLiquid(t);
+            $("s02-dots").style.translate = `${(-t * 14).toFixed(1)}px ${(-t * 6).toFixed(1)}px`;
+          };
+          renderAll(0);
+          FX.driver(tl, 0, END, renderAll);
+
+          // ---------- latch: sparks at each arrowhead + green flash on the pill outline ----------
+          arrows.forEach((a, i) => {
+            FX.sparks(tl, $("s02-latch"), {
+              at: tLatch, count: 7, cx: pillLeft(tLatch) + contour(a.off) + 4, cy: originY + a.off,
+              r0: 6, r1: 90, len: 22, thick: 3, dur: 0.32, color: i % 2 ? C.green_hot : C.green, seed: 40 + i,
+            });
+          });
+          tl.fromTo("#s02-outline", { borderColor: C.green }, { borderColor: C.black, duration: 0.45, ease: "power2.out", immediateRender: false }, tLatch);
+
+          // ---------- land: micro-bounce + RGB split on the headline ----------
+          tl.fromTo("#s02-pill", { scale: 1.035 }, { scale: 1, duration: 0.5, ease: T.easing.land, immediateRender: false }, tDrag1);
+          FX.rgbSplit(tl, [$("s02-head-v"), $("s02-head-g")], { at: tDrag1, frames: 3, px: T.rgb_split.offset_small_px, fps: D.video.fps, seed: 9 });
+
+          // ---------- label on the top border ----------
+          tl.fromTo("#s02-label-mark", { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.4, ease: T.easing.land }, L(S.label_reveal.start) - 0.04);
+          FX.glitchReveal(tl, $("s02-label-text"), copy.s02_pill_label, {
+            start: L(S.label_reveal.start), duration: S.label_reveal.duration, seed: 7,
+            color: C.black, flash: T.glitch_reveal.resolve_flash_on_white, charset: T.glitch_reveal.charset,
+            gap: T.glitch_reveal.gap_probability, step: T.glitch_reveal.step_s,
+          });
+
+          // ---------- settle pulse ----------
+          tl.fromTo("#s02-pill", { scale: 1 }, { scale: S.settle_pulse.scale, duration: 0.09, ease: T.easing.punch_in, immediateRender: false }, tPulse);
+          tl.to("#s02-pill", { scale: 1, duration: 0.55, ease: T.easing.settle }, tPulse + 0.09);
+          tl.fromTo("#s02-pulse", { scale: 1, opacity: 0.9 }, { scale: 1.14, opacity: 0, duration: 0.6, ease: "expo.out", immediateRender: false }, tPulse);
+
+          // ---------- caption ----------
+          FX.glitchReveal(tl, $("s02-caption"), copy.s02_caption, {
+            start: L(S.caption_reveal.start), duration: S.caption_reveal.duration, seed: 12,
+            color: C.black, flash: T.glitch_reveal.resolve_flash_on_white, charset: T.glitch_reveal.charset,
+            gap: T.glitch_reveal.gap_probability, step: T.glitch_reveal.step_s,
+          });
+          tl.fromTo("#s02-caption", { y: 12 }, { y: 0, duration: 0.45, ease: T.easing.snap }, L(S.caption_reveal.start));
+
+          // ---------- living hold: slow push-in + drifting glows ----------
+          tl.fromTo("#s02-cam", { scale: 1 }, { scale: 1.03, duration: END - tDrag1, ease: T.easing.glide }, tDrag1);
+          tl.fromTo("#s02-blob-a", { x: 0, y: 0 }, { x: 160, y: -70, duration: END, ease: T.easing.glide }, 0);
+          tl.fromTo("#s02-blob-b", { x: 0, y: 0 }, { x: -140, y: 80, duration: END, ease: T.easing.glide }, 0);
+
+          // ---------- speed streaks during the pan ----------
+          for (let i = 0; i < 14; i++) {
+            const d = document.createElement("div");
+            d.className = "s02-streak";
+            const h = 2 + Math.round(hash(i * 3 + 21) * 4);
+            const w = 200 + hash(i * 5 + 22) * 560;
+            const y = 70 + hash(i * 7 + 23) * 940;
+            const col = i % 3 === 1 ? C.green : C.violet;
+            d.style.cssText += `left:0;top:${y}px;width:${w}px;height:${h}px;background:${col};`;
+            $("s02-streaks").appendChild(d);
+            const s0 = tWall0 + hash(i * 11 + 24) * (tWall1 - tWall0) * 0.8;
+            tl.fromTo(d, { x: W + 20, opacity: 0.9 }, { x: -w - 40, opacity: 0.9, duration: 0.14 + hash(i * 13 + 25) * 0.12, ease: "none", immediateRender: false }, s0);
+          }
+
+          window.__timelines["S02_treasury"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

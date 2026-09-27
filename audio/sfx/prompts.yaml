@@ -1,0 +1,98 @@
+# TaleX brand sound library — ElevenLabs Sound Effects API (POST /v1/sound-generation).
+#
+# Every sound is generated from the prompt below with an exact duration and saved as <name>.mp3.
+# Regenerate one sound:   npm run sfx -- impact_big
+# Change a sound:         edit its prompt here (e.g. "heavier", "shorter tail"), then regenerate it.
+# Regenerate everything:  npm run sfx -- --all
+#
+# category: hit      → ducks the music under it in the mix (so impacts punch through)
+#           motion   → transitions (also ducks unless `duck: false`)
+#           texture  → sits on top of the music, no ducking
+# optional: trim_exact (cut/pad to duration_s), duck (override), shape_db [start, end] (gain curve)
+#
+# Global style guide for new sounds: premium, modern, clean tech motion design. Not cartoonish,
+# no comedic "boing"/"pop" sounds, no voices.
+
+model_id: eleven_text_to_sound_v2
+output_format: mp3_44100_192
+
+sounds:
+  riser:
+    category: motion
+    duration_s: 4.3
+    prompt_influence: 0.6
+    trim_exact: true          # trimmed/padded to exactly duration_s so it ends ON the final hit
+    duck: false               # the riser rides over the build; it must not duck the music
+    shape_db: [-8, 8]         # mix crescendo: gain curve from start → end (ElevenLabs risers sag at the end)
+    prompt: >
+      Continuous cinematic tension riser for a modern tech product launch. Starts very quiet and dark,
+      then a filtered white-noise sweep and an ascending synth pitch rise accelerate upward without
+      any pause, getting steadily louder and brighter the whole time, sustained right up to the very
+      last moment where it is at its loudest and highest. Clean, premium electronic sound design.
+      No silence, no impact at the end, no drums.
+
+  impact_small:
+    category: hit
+    duration_s: 1.2
+    prompt_influence: 0.55
+    prompt: >
+      Short tight cinematic impact: a punchy deep sub-bass thump with a crisp clean transient and a
+      quick decay. Subtle and premium, modern tech motion-graphics sound design. Not cartoonish.
+
+  impact_medium:
+    category: hit
+    duration_s: 1.8
+    prompt_influence: 0.55
+    prompt: >
+      Cinematic impact hit, clearly stronger: a deep sub-bass boom with a hard punchy transient and a
+      short bright metallic shimmer tail. Modern tech trailer sound design, clean and powerful. Not
+      cartoonish.
+
+  impact_big:
+    category: hit
+    duration_s: 3.0
+    prompt_influence: 0.6
+    prompt: >
+      Massive cinematic trailer impact: a huge deep sub-bass boom and a powerful layered hit with a
+      bright transient crack, followed by a long low rumbling tail. Epic modern tech launch moment,
+      clean, premium and very heavy. Not cartoonish.
+
+  whoosh:
+    category: motion
+    duration_s: 0.8
+    prompt_influence: 0.55
+    prompt: >
+      Fast airy whoosh swipe: a quick air pass moving left to right with a slight digital shimmer.
+      Clean modern motion-graphics transition sound, short and crisp.
+
+  glitch_tick:
+    category: texture
+    duration_s: 0.5
+    prompt_influence: 0.5
+    prompt: >
+      Subtle soft digital glitch ticks: a very quick flurry of tiny clean data clicks, quiet and
+      delicate. Modern UI sound design for letters scrambling into place.
+
+  liquid_swell:
+    category: texture
+    duration_s: 1.6
+    prompt_influence: 0.5
+    prompt: >
+      Soft liquid swell: smooth water rising and filling a glass container, gentle bubbling with
+      small bubbles, a clean rising pour. Premium and satisfying, not cartoonish.
+
+  latch:
+    category: hit
+    duration_s: 0.5
+    prompt_influence: 0.55
+    prompt: >
+      Crisp magnetic latch click: a tight mechanical clamp snap with a tiny electric zap. Clean
+      modern tech sound, very short.
+
+  settle_pulse:
+    category: texture
+    duration_s: 1.0
+    prompt_influence: 0.5
+    prompt: >
+      Soft deep sub pulse with a gentle glassy shimmer on top: a satisfying settle / confirmation
+      sound. Clean premium tech UI sound design.

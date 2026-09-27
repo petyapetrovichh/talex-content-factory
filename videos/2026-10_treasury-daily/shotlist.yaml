@@ -1,0 +1,181 @@
+# Shotlist — 2026-10_treasury-daily (part 1 quality test)
+#
+# ALL times are GLOBAL seconds on the video timeline (30 fps → 1 frame = 0.0333s).
+# Copy/numbers are NOT written here: `text:` entries reference keys in brief.md (```yaml copy```).
+# Scenes read this file through pipeline/build.mjs (window.__TALEX__.shots.<id>).
+# The root index.html (slot timing, total duration) is generated from this file.
+#
+# Edit a single shot:  change only that shot's block, then `npm run build && npm run review -- S02`.
+
+video:
+  id: 2026-10_treasury-daily
+  title: TaleX Treasury — part 1 quality test
+  width: 1440
+  height: 1080
+  fps: 30
+  duration: 8.5
+  output: test_part1.mp4    # combined render → output/test_part1.mp4
+  music: audio/music/track_test.mp3
+  music_plan: audio/music/composition_plan_test.json
+  music_drop: 4.6          # music section boundary = final $3,126 hit
+  mix:
+    music_gain_db: 0               # music bed under the SFX
+    music_build_ramp_db: [7, 3]   # gain on the build section (0 → music_drop); the thin build take needs lift, the riser supplies the rise
+    duck_db: 8                     # music dip under hits (motion sounds: 60% of it)
+    duck_release_ms: 260           # exponential recovery time constant of the dip
+    music_fade_out: [7.9, 8.5]     # fade the music out at the end
+    loudness_lufs: -14
+    true_peak_db: -1
+
+shots:
+  - id: S01
+    name: counter
+    scene: scenes/S01_counter.html
+    start: 0.0
+    end: 5.4
+    tail: 0.5              # S01 keeps rendering 5.4–5.9 under S02 for the whip-out (transition_out)
+    background: black — radial vignette, faint drifting green glow blobs (never static), slow push-in 1.00→1.06 while counting
+    visual: >
+      Big centered green number with strong bloom glow. Plain digital RE-COUNT (value updates every
+      frame, no odometer/tumbler), comma-formatted, tabular nums. Bursts at each milestone, each
+      bigger than the last. Label under the number after the final hit.
+    text:
+      - key: number_value      # formatted with number_prefix + thousands comma → $3,126
+        role: hero_number
+      - key: number_label
+        role: caption
+        reveal: glitch
+    counter:
+      # value ranges come from brief: counter_start → counter_milestones[0] → [1] → number_value
+      # constant rate inside a segment; each segment faster than the previous
+      segments:
+        - { from: counter_start,         to: counter_milestones.0, start: 0.3, end: 2.1 }   # slow   (~56/s)
+        - { from: counter_milestones.0,  to: counter_milestones.1, start: 2.1, end: 3.5 }   # faster (~643/s)
+        - { from: counter_milestones.1,  to: number_value,         start: 3.5, end: 4.6 }   # fastest (~1933/s)
+    bursts:
+      - id: burst_1
+        at: 2.1
+        scale: 1.08
+        flare: small
+        rings: 1
+        ring_scale: 3.2
+        sparks: 12
+        rgb_split_frames: 0
+        shake_px: 0
+        white_flash_frames: 0
+      - id: burst_2
+        at: 3.5
+        scale: 1.15
+        flare: medium
+        rings: 1
+        ring_scale: 5.0
+        ring_stroke_px: 5
+        sparks: 30
+        rgb_split_frames: 2
+        rgb_split_px: 12
+        shake_px: 3
+        white_flash_frames: 0
+      - id: burst_3
+        at: 4.6
+        scale: 1.25
+        flare: max
+        rings: 2
+        ring_scale: 8.0
+        ring_stroke_px: 8
+        sparks: 60
+        rgb_split_frames: 3
+        rgb_split_px: 24
+        shake_px: 9
+        white_flash_frames: 2
+    motion:
+      - { t: 0.0, what: "fade up from black, number shows $0 with soft bloom, background glows drifting" }
+      - { t: 0.3, what: "count starts (segment 1)" }
+      - { t: 2.1, what: "burst_1 at $100" }
+      - { t: 3.5, what: "burst_2 at $1,000" }
+      - { t: 4.6, what: "burst_3 at $3,126 — final, max bloom; riser ends here; music drops" }
+      - { t: 4.6, until: 5.4, what: "number settles and holds, gentle glow breathing" }
+      - { t: 4.72, until: 5.14, what: "number_label glitch/scramble reveal under the number" }
+    camera: slow push-in 1.00→1.06 over the count; shake on burst_2 (light) and burst_3 (heavy); pans right on the whip
+    label_reveal: { start: 4.72, duration: 0.42 }
+    review_at: [0.2, 1.4, 2.13, 3.0, 3.53, 4.63, 5.2, 5.62]   # contact-sheet frames (global s)
+    transition_out:
+      type: whip_left
+      start: 5.4
+      end: 5.9
+      detail: >
+        Number + label whip out to the LEFT (power4.in) with heavy horizontal motion blur, 3 violet/green
+        ghost copies and violet/green speed streaks across the frame. Camera pans right.
+    sfx:
+      - { cue: count_start,  sound: glitch_tick,   at: 0.30, gain_db: -10 }
+      - { cue: riser,        sound: riser,         at: 0.30, gain_db: -3, note: "4.3s long, ends exactly on burst_3" }
+      - { cue: burst_1,      sound: impact_small,  at: 2.10, gain_db: -4 }
+      - { cue: burst_2,      sound: impact_medium, at: 3.50, gain_db: -5 }
+      - { cue: burst_3,      sound: impact_big,    at: 4.60, gain_db: 0 }
+      - { cue: label_reveal, sound: glitch_tick,   at: 4.72, gain_db: -8 }
+      - { cue: whip,         sound: whoosh,        at: 5.44, gain_db: -2, note: "whoosh peak (+0.14s) lands on the fastest part of the whip ~5.58" }
+
+  - id: S02
+    name: treasury
+    scene: scenes/S02_treasury.html
+    start: 5.4
+    end: 8.5
+    background: black → white during the transition (white wall slides in from the right as the camera pans), then white with faint drifting green glow + dot field (never static)
+    visual: >
+      A bundle of 4 green arrows (bold lines, arrowheads, particles/dashes flowing along them like money)
+      shoots from where the number was toward the RIGHT, latches onto the left edge of the incoming
+      $X Treasury pill and drags it to center. Then the arrows flow into it, a green liquid fill rises
+      inside with a gentle wave, a small pulse when it settles, and the caption glitch-reveals below.
+    text:
+      - key: s02_pill_label
+        role: pill_label        # sits ON the top border, with the TaleX X mark
+        reveal: glitch
+      - key: s02_headline
+        role: headline          # large, inside the pill, black
+      - key: s02_caption
+        role: caption           # bold caps, black, below the pill
+        reveal: glitch
+    arrows:
+      count: 4
+      spread_px: 190            # vertical spread of the bundle
+      stroke_px: 12
+      head_px: 34
+      shoot:  { start: 5.40, end: 5.60, from_x: 760, to_x: 1330 }
+      latch:  { at: 5.60 }
+      drag:   { start: 5.60, end: 5.90 }       # heads ride the pill's left edge into place
+      absorb: { start: 5.90, end: 6.34 }       # tails flow into the pill, arrows disappear inside
+      particles_flow_px_per_s: 900
+    white_wall: { start: 5.43, end: 5.78 }     # left edge of the white frame 1440 → 0
+    pill:
+      width: 1180
+      height: 290
+      center_y: 500
+      enter_from_x: 1330       # pill's left edge when the arrows latch
+      land: 5.90
+      echo_collapse: { start: 5.80, end: 6.20 }
+    label_reveal:   { start: 5.94, duration: 0.40 }
+    fill:           { start: 6.00, end: 7.10, level: 0.8, wave_px: 12 }
+    settle_pulse:   { at: 7.10, scale: 1.035 }
+    caption_reveal: { start: 7.20, duration: 0.46 }
+    review_at: [5.5, 5.62, 5.78, 5.95, 6.3, 6.8, 7.12, 7.45, 8.3]   # contact-sheet frames (global s)
+    motion:
+      - { t: 5.40, until: 5.60, what: "arrows shoot right from the number's position, particles streaming" }
+      - { t: 5.43, until: 5.78, what: "white wall slides in from the right (camera pan) — black → white" }
+      - { t: 5.60, what: "arrowheads latch onto the incoming pill's left edge (spark flash)" }
+      - { t: 5.60, until: 5.90, what: "arrows drag the pill to center; pill has horizontal motion blur + echo outlines" }
+      - { t: 5.90, until: 6.34, what: "pill lands (echoes collapse into clean stroke); arrows flow into it" }
+      - { t: 6.00, until: 7.10, what: "green liquid rises inside with a gentle wave, bubbles" }
+      - { t: 7.10, what: "fill settles — small pulse" }
+      - { t: 7.20, until: 7.66, what: "caption glitch reveal" }
+      - { t: 7.66, until: 8.50, what: "hold with living motion (wave, bubbles, particle drift, slow push-in)" }
+    camera: pans right on the whip (white world arrives from the right); slow push-in 1.00→1.03 during the hold
+    transition_out:
+      type: cut
+      at: 8.5
+      detail: end of test (part 2 comes later)
+    sfx:
+      - { cue: arrows_latch,   sound: latch,         at: 5.60, gain_db: -5 }
+      - { cue: pill_land,      sound: impact_small,  at: 5.90, gain_db: -9 }
+      - { cue: label_reveal,   sound: glitch_tick,   at: 5.94, gain_db: -9 }
+      - { cue: liquid_fill,    sound: liquid_swell,  at: 6.00, gain_db: -4 }
+      - { cue: fill_settle,    sound: settle_pulse,  at: 7.10, gain_db: -5 }
+      - { cue: caption_reveal, sound: glitch_tick,   at: 7.20, gain_db: -7 }
