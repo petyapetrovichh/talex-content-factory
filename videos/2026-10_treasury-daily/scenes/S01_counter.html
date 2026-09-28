@@ -39,14 +39,6 @@
         #s01-bg {
           overflow: hidden;
         }
-        .s01-blob {
-          position: absolute;
-          border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.24), rgba(80, 150, 0, 0.09) 55%, rgba(111, 240, 0, 0) 100%);
-        }
-        #s01-blob-a { left: -260px; top: -300px; width: 1100px; height: 900px; }
-        #s01-blob-b { left: 700px; top: 520px; width: 1000px; height: 800px; }
-        #s01-blob-c { left: 320px; top: 140px; width: 800px; height: 700px; opacity: 0.7; }
         #s01-vignette {
           background: var(--tx-vignette);
           pointer-events: none;
@@ -176,9 +168,6 @@
         </svg>
 
         <div id="s01-bg" data-layout-allow-overflow="true">
-          <div class="s01-blob" id="s01-blob-a"></div>
-          <div class="s01-blob" id="s01-blob-b"></div>
-          <div class="s01-blob" id="s01-blob-c"></div>
           <div id="s01-vignette"></div>
         </div>
 
@@ -245,9 +234,6 @@
           // ---------- opening + living background (never static) ----------
           tl.fromTo("#s01-fade", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: T.easing.fade }, 0);
           tl.fromTo("#s01-numwrap", { scale: 0.94 }, { scale: 1, duration: 0.5, ease: T.easing.punch_out }, 0);
-          tl.fromTo("#s01-blob-a", { x: 0, y: 0 }, { x: 180, y: 90, duration: tailEnd, ease: T.easing.glide }, 0);
-          tl.fromTo("#s01-blob-b", { x: 0, y: 0 }, { x: -220, y: -120, duration: tailEnd, ease: T.easing.glide }, 0);
-          tl.fromTo("#s01-blob-c", { x: 0, y: 0, scale: 0.9 }, { x: -60, y: 40, scale: 1.15, duration: tailEnd, ease: T.easing.glide }, 0);
           const lastBurst = L(S.bursts[S.bursts.length - 1].at);
           tl.fromTo("#s01-bg", { opacity: 0.55 }, { opacity: 1, duration: lastBurst, ease: "power2.in" }, 0);
           // camera push-in while counting (tension)

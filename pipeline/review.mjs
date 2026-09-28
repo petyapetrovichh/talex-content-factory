@@ -25,7 +25,11 @@ const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "talex-review-"));
 for (const s of shotlist.shots) {
   if (only.length && !only.includes(s.id)) continue;
   const end = s.end + (s.tail || 0);
-  const times = s.review_at || Array.from({ length: 8 }, (_, i) => +(s.start + ((i + 0.5) * (end - s.start)) / 8).toFixed(2));
+  const fps = shotlist.video.fps || 30;
+  // snapshot at the exact frame time the renderer uses (f / fps), not the snapped value (f / fps − ε),
+  // otherwise a frame that starts a shot can show the previous shot
+  const raw = s.review_at || Array.from({ length: 8 }, (_, i) => s.start + ((i + 0.5) * (end - s.start)) / 8);
+  const times = raw.map((t) => +(Math.round(t * fps) / fps).toFixed(4));
   const out = path.join(tmpRoot, s.id);
   console.log(`review ${s.id}: snapshot at ${times.join(", ")}s`);
   execFileSync("npx", ["hyperframes", "snapshot", "--at", times.join(","), "--no-end", "-o", out, "--describe", "false"], {

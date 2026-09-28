@@ -1,8 +1,9 @@
 <!doctype html>
 <!--
-  S05 — SPEEDOMETER. White frame pushes in from the right (blur + streaks). A large arc gauge of 7 LARGE
+  S05 — SPEEDOMETER. Opens on T1's green halftone bloom clearing to off-white. A large arc gauge of 7 LARGE
   segments (upright day labels). Start: MON lit, "×1". TUE → SUN light up one per eighth beat (each flashes),
   the center ticks ×2 … ×7 in sync; on SUN a burst (scale punch, ring, sparks). Caption under the number.
+  Exit = T2: the gauge recedes into depth with blur + color shift while the background darkens to graphite.
   Copy from brief.md, timing from shotlist.yaml (window.__TALEX__). Scene-local time.
 -->
 <html>
@@ -33,28 +34,49 @@
           height: 1080px;
           background: var(--tx-white);
           overflow: hidden;
-          filter: url(#s05-hblur);
         }
+        /* halftone dot disc as a graphic element behind the gauge (never full-frame) */
         #s05-dots {
           position: absolute;
-          left: -80px;
-          top: -80px;
-          width: 1600px;
-          height: 1240px;
-          background-image: radial-gradient(circle, rgba(0, 0, 0, 0.12) 1.7px, rgba(0, 0, 0, 0) 2.2px);
-          background-size: 34px 34px;
-          -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 1) 100%);
-          mask-image: radial-gradient(ellipse 70% 62% at 50% 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 1) 100%);
-        }
-        .s05-blob {
-          position: absolute;
+          left: 170px;
+          top: 50px;
+          width: 1100px;
+          height: 1100px;
           border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.2), rgba(111, 240, 0, 0.06) 55%, rgba(111, 240, 0, 0) 100%);
+          background-image: radial-gradient(circle, var(--tx-halftone-light) 3.2px, rgba(0, 0, 0, 0) 3.8px);
+          background-size: 26px 26px;
+          -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0) 72%);
+          mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0) 72%);
         }
-        #s05-blob-a { left: -260px; top: 560px; width: 900px; height: 760px; }
-        #s05-blob-b { left: 880px; top: -300px; width: 900px; height: 760px; }
+        /* static, very faint corner washes */
+        #s05-wash {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 50% 42% at 100% 100%, var(--tx-wash-green), rgba(111, 240, 0, 0) 70%),
+            radial-gradient(ellipse 45% 38% at 0% 0%, var(--tx-wash-blue), rgba(120, 170, 255, 0) 70%);
+        }
+        /* T1 frames 8–10: green halftone bloom that floods the frame, then clears */
+        #s05-bloom {
+          position: absolute;
+          left: -330px;
+          top: -450px;
+          width: 2100px;
+          height: 2100px;
+          border-radius: 50%;
+          background: radial-gradient(closest-side, #6ff000 0%, #6ff000 48%, rgba(111, 240, 0, 0.75) 60%, rgba(111, 240, 0, 0) 72%);
+          opacity: 0;
+        }
+        #s05-bloomdots {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background-image: radial-gradient(circle, rgba(40, 110, 0, 0.55) 3.4px, rgba(0, 0, 0, 0) 4px);
+          background-size: 16px 16px;
+          -webkit-mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.3) 60%, rgba(0, 0, 0, 0) 72%);
+          mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.3) 60%, rgba(0, 0, 0, 0) 72%);
+        }
         #s05-cam,
-        #s05-streaks,
         #s05-sparks {
           position: absolute;
           inset: 0;
@@ -120,14 +142,13 @@
 
       <div id="root" data-composition-id="S05_speedometer" data-width="1440" data-height="1080">
         <svg width="0" height="0" style="position: absolute">
-          <filter id="s05-hblur" x="-10%" y="0%" width="120%" height="100%" color-interpolation-filters="sRGB">
-            <feGaussianBlur id="s05-hblur-fe" stdDeviation="0 0" />
+          <filter id="s05-dblur" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s05-dblur-fe" stdDeviation="0 0" />
           </filter>
         </svg>
         <div id="s05-panel" data-layout-allow-overflow="true">
+          <div id="s05-wash"></div>
           <div id="s05-dots"></div>
-          <div class="s05-blob" id="s05-blob-a"></div>
-          <div class="s05-blob" id="s05-blob-b"></div>
           <div id="s05-cam" data-layout-allow-overflow="true">
             <div id="s05-ring"></div>
             <div id="s05-sparks"></div>
@@ -142,7 +163,7 @@
             </div>
           </div>
         </div>
-        <div id="s05-streaks"></div>
+        <div id="s05-bloom"><div id="s05-bloomdots"></div></div>
       </div>
 
       <script>
@@ -249,24 +270,32 @@
             gap: T.glitch_reveal.gap_probability, step: T.glitch_reveal.step_s,
           });
 
-          // ---------- push in from the right (white frame + gauge), blur + streaks ----------
-          const i0 = L(S.push_in.start), i1 = L(S.push_in.end);
-          FX.blurMove(tl, $("s05-panel"), $("s05-hblur-fe"), {
-            start: 0, end: i1 + 0.05, max: 60, k: 90,
-            fn: (t) => ({ x: FX.tween(t, i0, i1, 1480, 0, "power3.out"), y: 0 }),
+          // ---------- T1 (second half): green halftone bloom floods the frame, clears to off-white ----------
+          const TI = S.transition_in;
+          const bi0 = L(TI.start), bf = L(TI.flood_at), bc = L(TI.clear_end);
+          tl.fromTo("#s05-bloom", { scale: 0.3, opacity: 1 }, { scale: 1, opacity: 1, duration: bf - bi0, ease: "power2.out", immediateRender: true }, bi0);
+          tl.to("#s05-bloom", { scale: 1.5, opacity: 0, duration: bc - bf, ease: "power2.in" }, bf);
+          // the speedometer is already there under the flood (hidden until the frame is covered, like T1 frame 9)
+          tl.fromTo("#s05-cam", { opacity: 0 }, { opacity: 1, duration: 0.001, ease: "none", immediateRender: true }, bf);
+          tl.to(["#s05-dots", "#s05-wash"], { opacity: 1, duration: 0.001 }, bf);
+          tl.fromTo("#s05-gauge", { scale: 0.92 }, { scale: 1, duration: bc - bi0 + 0.15, ease: "power3.out", transformOrigin: `${cx}px ${cy}px` }, bi0);
+
+          // ---------- T2 "recede into depth": on the ×7 burst the gauge shrinks away with blur + color shift,
+          //            while the background darkens to graphite (reference/higgsfield/transitions/T2) ----------
+          const r0 = L(S.transition_out.start), r1 = L(S.transition_out.end);
+          tl.fromTo("#s05-cam", { scale: 1 }, { scale: 1.04, duration: r0, ease: "sine.inOut" }, 0); // camera: slow push
+          tl.to("#s05-cam", { scale: 0.32, duration: r1 - r0, ease: "power2.in" }, r0);
+          $("s05-cam").style.filter = "url(#s05-dblur)";
+          FX.driver(tl, r0 - 0.001, r1 - r0, (t, p) => {
+            const b = p <= 0 ? 0 : 10 * Math.pow(p, 1.3);
+            $("s05-dblur-fe").setAttribute("stdDeviation", `${b.toFixed(1)} ${b.toFixed(1)}`);
           });
-          FX.streaks(tl, $("s05-streaks"), { at: i0, span: 0.14, count: 10, dir: -1, colors: [C.violet, C.green], seed: 57 });
-
-          // ---------- living: slow push, drift ----------
-          tl.fromTo("#s05-cam", { scale: 1 }, { scale: 1.04, duration: END, ease: "sine.inOut" }, 0);
-          tl.fromTo("#s05-dots", { x: 0, y: 0 }, { x: -28, y: -12, duration: END, ease: "none" }, 0);
-          tl.fromTo("#s05-blob-a", { x: 0, y: 0 }, { x: 140, y: -60, duration: END, ease: "sine.inOut" }, 0);
-          tl.fromTo("#s05-blob-b", { x: 0, y: 0 }, { x: -120, y: 70, duration: END, ease: "sine.inOut" }, 0);
-
-          // ---------- whip left into S06 ----------
-          const w0 = L(S.transition_out.start), w1 = L(S.transition_out.end);
-          tl.to("#s05-cam", { x: -1600, duration: w1 - w0, ease: "power3.in" }, w0);
-          FX.driver(tl, w0 - 0.001, w1 - w0, (t, p) => $("s05-hblur-fe").setAttribute("stdDeviation", `${(p <= 0 ? 0 : 70 * p).toFixed(1)} 0`));
+          // color shift toward warm/dim as it recedes (lime → yellow, like the strip)
+          tl.fromTo("#s05-gauge", { filter: "hue-rotate(0deg) brightness(1) saturate(1)" }, { filter: "hue-rotate(-38deg) brightness(0.8) saturate(0.85)", duration: r1 - r0, ease: "power1.in", immediateRender: false }, r0);
+          tl.to("#s05-panel", { backgroundColor: C.black, duration: r1 - r0, ease: "power2.in" }, r0);
+          tl.to(["#s05-dots", "#s05-wash"], { opacity: 0, duration: (r1 - r0) * 0.7, ease: "power1.in" }, r0);
+          tl.to("#s05-center", { color: C.white, duration: r1 - r0, ease: "power2.in" }, r0);
+          tl.to(["#s05-num", "#s05-caption"], { color: "#9a9a9a", duration: r1 - r0, ease: "power2.in" }, r0);
 
           window.__timelines["S05_speedometer"] = tl;
         })();

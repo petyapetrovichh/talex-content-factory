@@ -34,7 +34,7 @@ pipeline/                the stages (node, run via npm scripts)
                          rings, shake, RGB split, speed streaks, velocity motion blur `blurMove`, `tween`)
   synth_sfx.py           synthesizes sounds no library has (liquid swell, glitch tick)
   runtime/vendor/        GSAP (vendored: the render browser never depends on a CDN)
-reference/higgsfield/    quality reference
+reference/higgsfield/    quality reference (+ transitions/: frame-by-frame strips T1–T4 at 24 fps, see its README)
 videos/<yyyy-mm_slug>/
   brief.md               goal, tone, and the ```yaml copy``` block — the ONLY place numbers/copy live
   shotlist.yaml          one entry per shot: timing, background, visual, motion, camera, text keys, sfx cues, transition_out
@@ -99,6 +99,16 @@ All commands default to the newest `videos/*`; pick another with `VIDEO=2026-11_
    - `npm run build` again so `index.html` includes the mix.
 6. **Render** — `npm run render`. Blur-heavy scenes render with `--workers 1` (`tokens.blur.render_workers`)
    because multi-worker renders can make animated blur flicker.
+
+## Look rules (v2, from the reference)
+
+- Backgrounds are flat graphite `#141414` or off-white `#F7F7F7` (`brand/tokens.json`), never pure black/white,
+  never drifting glow blobs. White shots may carry one or two faint, static corner washes.
+- Texture = a halftone dot grid as a graphic element in part of the frame (behind a gauge, behind a chart).
+- Motion comes from the camera; bloom belongs to the green elements themselves.
+- Every transition is different and matched to a strip in `reference/higgsfield/transitions/`
+  (T1 radial burst + halftone bloom, T2 recede into depth, T3 vertical whip, T4 macro pull-back). Violet speed
+  streaks only on the horizontal-push transition.
 
 ## Asking for edits
 

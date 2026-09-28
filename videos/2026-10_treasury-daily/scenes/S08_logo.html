@@ -2,8 +2,8 @@
 <!--
   S08 — LOGO. Over S07's dissolving pill (this root is transparent; the video root is black), the full TaleX
   logo (light version: white wordmark, green mark) slides in from a HUGE size into the center with motion
-  blur + zoom echoes and eases to a stop, then holds to the last frame of the track (glow breathing, very
-  slow push). Timing from shotlist.yaml (window.__TALEX__). Scene-local time.
+  blur + zoom echoes and eases to a stop, then holds to the last frame of the track (its own bloom breathing,
+  very slow push). Timing from shotlist.yaml (window.__TALEX__). Scene-local time.
 -->
 <html>
   <head>
@@ -16,16 +16,6 @@
           position: absolute;
           inset: 0;
           overflow: hidden;
-        }
-        #s08-glow {
-          position: absolute;
-          left: 220px;
-          top: 290px;
-          width: 1000px;
-          height: 500px;
-          border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.22), rgba(111, 240, 0, 0.06) 55%, rgba(111, 240, 0, 0) 100%);
-          opacity: 0;
         }
         #s08-cam {
           position: absolute;
@@ -45,6 +35,9 @@
           overflow: visible;
           opacity: 0;
         }
+        #s08-bloom {
+          filter: blur(16px);
+        }
       </style>
 
       <div id="root" data-composition-id="S08_logo" data-width="1440" data-height="1080">
@@ -53,11 +46,11 @@
             <feGaussianBlur id="s08-blur-fe" stdDeviation="0 0" />
           </filter>
         </svg>
-        <div id="s08-glow"></div>
         <div id="s08-cam" data-layout-allow-overflow="true">
           <div id="s08-fly" data-layout-allow-overflow="true">
             <svg class="s08-logo" id="s08-echo-2" data-layout-allow-overlap="true"></svg>
             <svg class="s08-logo" id="s08-echo-1" data-layout-allow-overlap="true"></svg>
+            <svg class="s08-logo" id="s08-bloom" data-layout-allow-overlap="true"></svg>
             <svg class="s08-logo" id="s08-logo" data-layout-allow-overlap="true"></svg>
           </div>
         </div>
@@ -77,7 +70,7 @@
 
           // light logo: white wordmark + green mark (brand/talex-logo.svg); echoes tinted for the smear
           const logo = D.brand.logo;
-          [["s08-logo", null], ["s08-echo-1", C.green], ["s08-echo-2", C.violet]].forEach(([id, tint]) => {
+          [["s08-logo", null], ["s08-bloom", null], ["s08-echo-1", C.green], ["s08-echo-2", C.violet]].forEach(([id, tint]) => {
             const svg = $(id);
             svg.setAttribute("viewBox", logo.viewBox);
             logo.paths.forEach((p) => {
@@ -97,6 +90,7 @@
           };
           const fe = $("s08-blur-fe");
           const logos = ["s08-logo", "s08-echo-1", "s08-echo-2"].map($);
+          const bloom = $("s08-bloom"); // the logo's own bloom (no background glow)
           FX.driver(tl, 0, END, (t) => {
             const s = sc(t);
             const v = Math.abs(sc(t + 1 / 60) - sc(t - 1 / 60)) * 30; // scale units / s
@@ -111,13 +105,16 @@
               el.style.translate = logos[0].style.translate;
               el.style.opacity = live ? String(Math.min(0.5, v / 40) * (1 - i * 0.35)) : "0";
             });
+            bloom.style.scale = String(s);
+            bloom.style.translate = logos[0].style.translate;
+            // bloom breathes gently once the logo has landed
+            const breath = t < b ? 0.35 : 0.35 + 0.2 * Math.sin(((t - b) / (END - b)) * Math.PI * 2 - Math.PI / 2) * 0.5 + 0.1;
+            bloom.style.opacity = live ? breath.toFixed(3) : "0";
             const blur = live ? Math.min(22, v * 0.9) : 0;
             fe.setAttribute("stdDeviation", `${blur.toFixed(1)} ${blur.toFixed(1)}`);
           });
 
           // ---------- hold: glow breathing + very slow push ----------
-          tl.fromTo("#s08-glow", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }, b - 0.25);
-          tl.fromTo("#s08-glow", { scale: 1 }, { scale: 1.12, duration: (END - b) / 2, ease: "sine.inOut", repeat: 1, yoyo: true, immediateRender: false }, b + 0.25);
           tl.fromTo("#s08-cam", { scale: 1 }, { scale: 1.025, duration: END - b, ease: "sine.inOut" }, b);
 
           window.__timelines["S08_logo"] = tl;

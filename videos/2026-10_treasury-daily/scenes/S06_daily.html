@@ -1,8 +1,9 @@
 <!doctype html>
 <!--
-  S06 — DAILY. (Higgsfield "10x ENTERPRISE ADOPTION SINCE JUNE" move.) A huge bloom-green "DAILY" whips in
-  with its caption; then a thin green line chart with dots draws in ABOVE it, left → right, rising — its
-  appearance pushes the text block down. The last dot flashes. X-axis labels only (no values, no Y-axis).
+  S06 — DAILY. (Higgsfield "10x ENTERPRISE ADOPTION SINCE JUNE" move.) Enters with T4: a huge out-of-focus
+  bloom-green "DAILY" pulls back to size while racking into focus; then a thin green line chart draws in ABOVE
+  it, left → right, rising through exactly one dot per date label — its appearance pushes the text block down.
+  The last dot (OCT 1) flashes. X-axis labels only (no values, no Y-axis). Exits with T3 (vertical whip).
   Copy from brief.md, timing from shotlist.yaml (window.__TALEX__). Scene-local time.
 -->
 <html>
@@ -28,22 +29,22 @@
         }
         #s06-bg,
         #s06-cam,
-        #s06-streaks,
         #s06-sparks {
           position: absolute;
           inset: 0;
         }
-        .s06-blob {
+        /* faint halftone dot grid behind the chart area only */
+        #s06-dots {
           position: absolute;
-          border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.2), rgba(80, 150, 0, 0.07) 55%, rgba(111, 240, 0, 0) 100%);
-        }
-        #s06-blob-a { left: -250px; top: 450px; width: 1100px; height: 900px; }
-        #s06-blob-b { left: 800px; top: -300px; width: 900px; height: 800px; }
-        #s06-vignette {
-          position: absolute;
-          inset: 0;
-          background: var(--tx-vignette);
+          left: 150px;
+          top: 90px;
+          width: 1140px;
+          height: 560px;
+          background-image: radial-gradient(circle, var(--tx-halftone-dark) 3px, rgba(0, 0, 0, 0) 3.6px);
+          background-size: 26px 26px;
+          -webkit-mask-image: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 100%);
+          mask-image: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 100%);
+          opacity: 0;
         }
         #s06-chart {
           position: absolute;
@@ -64,7 +65,6 @@
           position: absolute;
           left: 0;
           width: 100%;
-          filter: url(#s06-hblur);
         }
         #s06-block {
           display: flex;
@@ -106,16 +106,14 @@
 
       <div id="root" data-composition-id="S06_daily" data-width="1440" data-height="1080">
         <svg width="0" height="0" style="position: absolute">
-          <filter id="s06-hblur" x="-20%" y="-10%" width="140%" height="120%" color-interpolation-filters="sRGB">
-            <feGaussianBlur id="s06-hblur-fe" stdDeviation="0 0" />
+          <filter id="s06-vblur" x="-10%" y="-40%" width="120%" height="180%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s06-vblur-fe" stdDeviation="0 0" />
           </filter>
         </svg>
         <div id="s06-bg" data-layout-allow-overflow="true">
-          <div class="s06-blob" id="s06-blob-a"></div>
-          <div class="s06-blob" id="s06-blob-b"></div>
-          <div id="s06-vignette"></div>
         </div>
         <div id="s06-cam" data-layout-allow-overflow="true">
+          <div id="s06-dots"></div>
           <svg id="s06-chart" viewBox="0 0 1440 1080"></svg>
           <div id="s06-sparks"></div>
           <div id="s06-blockpos">
@@ -128,7 +126,6 @@
             </div>
           </div>
         </div>
-        <div id="s06-streaks"></div>
       </div>
 
       <script>
@@ -163,7 +160,11 @@
 
           // ---------- chart (illustrative): points, line, dots, axis ----------
           const x0 = 210, x1 = 1230, yBase = 560, yTop = 150;
-          const pts = S.chart_points.map((h, i, a) => [x0 + ((x1 - x0) * i) / (a.length - 1), yBase - h * (yBase - yTop)]);
+          // exactly one dot per axis label, each vertically aligned to its label (same x as the label)
+          const nL = copy.s06_axis.length;
+          if (S.chart_points.length !== nL) throw new Error(`S06: chart_points (${S.chart_points.length}) must match s06_axis (${nL})`);
+          const labelX = (i) => x0 + ((x1 - x0) * i) / (nL - 1);
+          const pts = S.chart_points.map((h, i) => [labelX(i), yBase - h * (yBase - yTop)]);
           const svg = $("s06-chart");
           const defs = svgEl("defs", {}, svg);
           const glow = svgEl("filter", { id: "s06-glow", x: "-20%", y: "-50%", width: "140%", height: "200%" }, defs);
@@ -174,7 +175,7 @@
           const chart = svgEl("g", { id: "s06-chartg" }, svg);
           const axis = svgEl("line", { x1: x0 - 20, y1: yBase + 26, x2: x1 + 20, y2: yBase + 26, stroke: "rgba(255,255,255,0.18)", "stroke-width": 2 }, chart);
           const labels = copy.s06_axis.map((txt, i, a) => {
-            const t = svgEl("text", { x: x0 + ((x1 - x0) * i) / (a.length - 1), y: yBase + 66, "text-anchor": "middle", class: "s06-axis", fill: "rgba(255,255,255,0.55)" }, chart);
+            const t = svgEl("text", { x: labelX(i), y: yBase + 66, "text-anchor": "middle", class: "s06-axis", fill: "rgba(255,255,255,0.55)" }, chart);
             t.textContent = txt;
             return t;
           });
@@ -224,6 +225,7 @@
           });
           // chart layer arrives from above as it draws; axis labels fade in with the pen
           tl.fromTo("#s06-chartg", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, c0 - 0.05);
+          tl.fromTo("#s06-dots", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.out" }, c0 - 0.1);
           labels.forEach((lab, i) => tl.fromTo(lab, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, c0 + ((c1 - c0) * i) / (labels.length - 1) * 0.9));
 
           // the chart's appearance pushes the text block down
@@ -238,32 +240,30 @@
           tl.fromTo(ring, { attr: { r: 12 }, opacity: 1 }, { attr: { r: 90 }, opacity: 0, duration: 0.55, ease: "expo.out", immediateRender: false }, f0);
           FX.sparks(tl, $("s06-sparks"), { at: f0, count: 12, cx: last[0], cy: last[1], r0: 14, r1: 120, len: 22, thick: 3, dur: 0.4, color: C.green_hot, seed: 61 });
 
-          // ---------- DAILY whips in from the right (blur + streaks), caption glitch ----------
-          const h0 = L(S.headline_in.start);
-          FX.blurMove(tl, bp, $("s06-hblur-fe"), {
-            start: 0, end: h0 + 0.4, max: 60, k: 100,
-            fn: (t) => ({ x: FX.tween(t, h0, h0 + 0.3, 1500, 0, "expo.out"), y: 0 }),
-          });
-          FX.streaks(tl, $("s06-streaks"), { at: h0, span: 0.12, count: 10, dir: -1, colors: [C.violet, C.green], seed: 63 });
-          tl.fromTo("#s06-head", { color: C.green_hot }, { color: C.green, duration: 0.4, ease: "power2.out", immediateRender: false }, h0 + 0.2);
+          // ---------- T4 "macro pull-back" (reference/higgsfield/transitions/T4, second half):
+          //            a huge out-of-focus DAILY fills the frame and pulls back to size while racking into focus ----------
+          const TI = S.transition_in;
+          const m0 = L(TI.start), m1 = L(TI.end);
+          bp.style.transformOrigin = `720px ${(270 * 0.92) / 2}px`;
+          tl.fromTo(bp, { scale: 5.2, filter: "blur(34px)" }, { scale: 1, filter: "blur(0px)", duration: m1 - m0, ease: "expo.out", immediateRender: true }, m0);
+          tl.fromTo("#s06-head", { color: C.green_hot }, { color: C.green, duration: 0.4, ease: "power2.out", immediateRender: false }, m1 - 0.15);
           FX.glitchReveal(tl, $("s06-caption"), copy.s06_caption, {
             start: L(S.caption_reveal.start), duration: S.caption_reveal.duration, seed: 65,
             color: C.white, flash: T.glitch_reveal.resolve_flash_on_black, charset: T.glitch_reveal.charset,
             gap: T.glitch_reveal.gap_probability, step: T.glitch_reveal.step_s,
           });
 
-          // ---------- living ----------
+          // ---------- camera: slow push; the headline's own bloom breathes ----------
           tl.fromTo("#s06-cam", { scale: 1 }, { scale: 1.04, duration: END, ease: "sine.inOut" }, 0);
           tl.fromTo("#s06-head-bloom", { opacity: 0.4 }, { opacity: 0.7, duration: END / 2, ease: "sine.inOut", repeat: 1, yoyo: true }, 0);
-          tl.fromTo("#s06-blob-a", { x: 0, y: 0 }, { x: 150, y: -70, duration: END, ease: "sine.inOut" }, 0);
-          tl.fromTo("#s06-blob-b", { x: 0, y: 0 }, { x: -130, y: 60, duration: END, ease: "sine.inOut" }, 0);
 
-          // ---------- whip left into S07 ----------
-          const w0 = L(S.transition_out.start), w1 = L(S.transition_out.end);
-          tl.to("#s06-cam", { x: -1600, duration: w1 - w0, ease: "power3.in" }, w0);
-          $("s06-cam").style.filter = "url(#s06-hblur)";
-          FX.driver(tl, w0 - 0.001, w1 - w0, (t, p) => $("s06-hblur-fe").setAttribute("stdDeviation", `${(p <= 0 ? 0 : 70 * p).toFixed(1)} 0`));
-          FX.streaks(tl, $("s06-streaks"), { at: w0 - 0.03, span: 0.1, count: 8, dir: -1, colors: [C.violet, C.green], seed: 67 });
+          // ---------- T3 "vertical whip" (first half): content drifts up, then streaks upward ----------
+          const TO = S.transition_out;
+          const v0 = L(TO.drift_start), w0 = L(TO.start), w1 = L(TO.end);
+          tl.to("#s06-cam", { y: -40, duration: w0 - v0, ease: "power1.in" }, v0);
+          tl.to("#s06-cam", { y: -1250, duration: w1 - w0, ease: "power3.in" }, w0);
+          $("s06-cam").style.filter = "url(#s06-vblur)";
+          FX.driver(tl, w0 - 0.001, w1 - w0, (t, p) => $("s06-vblur-fe").setAttribute("stdDeviation", `0 ${(p <= 0 ? 0 : 8 + 60 * p).toFixed(1)}`));
 
           window.__timelines["S06_daily"] = tl;
         })();

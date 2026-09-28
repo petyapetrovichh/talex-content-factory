@@ -44,24 +44,14 @@
           overflow: hidden;
           filter: url(#s02-hblur-world);
         }
-        #s02-dots {
+        /* static soft color wash in two corners (reference 390 / 30M+ frames) — never animated */
+        #s02-wash {
           position: absolute;
-          left: -80px;
-          top: -80px;
-          width: 1600px;
-          height: 1240px;
-          background-image: radial-gradient(circle, rgba(0, 0, 0, 0.13) 1.7px, rgba(0, 0, 0, 0) 2.2px);
-          background-size: 34px 34px;
-          -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% 46%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 1) 100%);
-          mask-image: radial-gradient(ellipse 70% 62% at 50% 46%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 1) 100%);
+          inset: 0;
+          background:
+            radial-gradient(ellipse 55% 45% at 0% 100%, var(--tx-wash-green), rgba(111, 240, 0, 0) 70%),
+            radial-gradient(ellipse 50% 40% at 100% 0%, var(--tx-wash-blue), rgba(120, 170, 255, 0) 70%);
         }
-        .s02-blob {
-          position: absolute;
-          border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.2), rgba(111, 240, 0, 0.06) 55%, rgba(111, 240, 0, 0) 100%);
-        }
-        #s02-blob-a { left: -300px; top: 520px; width: 1000px; height: 800px; }
-        #s02-blob-b { left: 900px; top: -340px; width: 900px; height: 760px; }
         #s02-edge {
           position: absolute;
           left: -10px;
@@ -217,9 +207,7 @@
 
         <div id="s02-cam" data-layout-allow-overflow="true">
           <div id="s02-white" data-layout-allow-overflow="true">
-            <div id="s02-dots"></div>
-            <div class="s02-blob" id="s02-blob-a"></div>
-            <div class="s02-blob" id="s02-blob-b"></div>
+            <div id="s02-wash"></div>
             <div id="s02-edge"></div>
           </div>
 
@@ -492,14 +480,11 @@
             });
           };
 
-          const dots = $("s02-dots");
           const renderAll = (t) => {
             setWorld(t);
             drawStream(t);
             placePill(t);
             drawLiquid(t);
-            const tw = still(t);
-            dots.style.translate = `${(-tw * 14).toFixed(1)}px ${(-tw * 6).toFixed(1)}px`;
           };
           renderAll(0);
           FX.driver(tl, 0, END, renderAll);
@@ -529,8 +514,6 @@
 
           // ---------- living hold → stillness before the drop ----------
           tl.fromTo("#s02-cam", { scale: 1 }, { scale: 1.025, duration: tStill1 - tLand, ease: "sine.out" }, tLand);
-          tl.fromTo("#s02-blob-a", { x: 0, y: 0 }, { x: 140, y: -60, duration: tStill1, ease: "sine.out" }, 0);
-          tl.fromTo("#s02-blob-b", { x: 0, y: 0 }, { x: -120, y: 70, duration: tStill1, ease: "sine.out" }, 0);
 
           // ---------- speed streaks during the push ----------
           FX.streaks(tl, $("s02-streaks"), { at: tWall0 - 0.02, span: 0.22, count: 12, dir: -1, colors: [C.violet, C.green, C.violet], seed: 21 });

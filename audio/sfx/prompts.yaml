@@ -166,3 +166,21 @@ sounds:
     file: audio/sfx/synth/glitch_tick_soft.wav
     category: texture
     lead_s: 0
+  bloom_whoosh:
+    source: synth
+    file: audio/sfx/synth/bloom_whoosh.wav
+    category: motion
+    lead_s: 0.06
+    note: burst into the halftone bloom (S04→S05)
+  deep_swoosh:
+    source: synth
+    file: audio/sfx/synth/deep_swoosh.wav
+    category: motion
+    lead_s: 0.45
+    note: gauge recedes into depth (S05→S06)
+  reveal_swell:
+    source: synth
+    file: audio/sfx/synth/reveal_swell.wav
+    category: texture
+    lead_s: 0.3
+    note: circular flood to graphite (S07)

@@ -5,6 +5,9 @@ usage: python3 pipeline/synth_sfx.py            → audio/sfx/synth/*.wav
 
   liquid_swell_soft  1.4 s  soft liquid fill: low-passed noise swell that opens up + rising bubble blips
   glitch_tick_soft   0.22 s tiny clean data ticks for scrambled-letter reveals
+  bloom_whoosh       0.7 s  burst + airy bloom: bright noise burst sweeping high → low, soft sub under it (peak 0.06 s)
+  deep_swoosh        0.8 s  dark swoosh receding into depth: low-passed noise, pitch falling (peak 0.45 s)
+  reveal_swell       0.9 s  soft reveal swell: warm filtered-noise + low fifth rising then settling (peak 0.3 s)
 """
 import os
 import wave
@@ -79,6 +82,45 @@ def glitch_tick_soft(dur=0.22, seed=3):
     return x
 
 
+def bloom_whoosh(dur=0.7, seed=11):
+    rng = np.random.default_rng(seed)
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    p = t / dur
+    fc = 7000 * (1 - p) ** 2 + 400  # bright → dull
+    noise = onepole_lp(rng.standard_normal(n), fc) - 0.6 * onepole_lp(rng.standard_normal(n), 120)
+    env = np.minimum(1, t / 0.04) * np.exp(-np.maximum(0, t - 0.06) / 0.22)
+    sub = np.sin(2 * np.pi * np.cumsum(70 - 30 * p) / SR) * np.exp(-t / 0.18) * 0.5
+    return noise * env + sub * np.minimum(1, t / 0.01)
+
+
+def deep_swoosh(dur=0.8, seed=12):
+    rng = np.random.default_rng(seed)
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    p = t / dur
+    fc = 250 + 1100 * np.sin(np.pi * np.clip(p / 0.9, 0, 1)) ** 2  # opens then closes
+    noise = onepole_lp(onepole_lp(rng.standard_normal(n), fc), fc)
+    env = np.sin(np.pi * np.clip(p, 0, 1)) ** 1.6
+    tone = np.sin(2 * np.pi * np.cumsum(110 * (1 - 0.45 * p)) / SR) * 0.25 * env  # falling = receding
+    return noise * env + tone
+
+
+def reveal_swell(dur=0.9, seed=13):
+    rng = np.random.default_rng(seed)
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    p = t / dur
+    env = np.minimum(1, (t / 0.3) ** 1.5) * np.exp(-np.maximum(0, t - 0.3) / 0.28)
+    pad = (np.sin(2 * np.pi * 110 * t) + 0.6 * np.sin(2 * np.pi * 165 * t) + 0.25 * np.sin(2 * np.pi * 220 * t)) * 0.35
+    air = onepole_lp(rng.standard_normal(n), 900 + 1600 * p) * 0.6
+    fade = np.minimum(1, (dur - t) / 0.1)
+    return (pad + air) * env * fade
+
+
 if __name__ == "__main__":
     write("liquid_swell_soft", liquid_swell_soft())
     write("glitch_tick_soft", glitch_tick_soft())
+    write("bloom_whoosh", bloom_whoosh())
+    write("deep_swoosh", deep_swoosh())
+    write("reveal_swell", reveal_swell())

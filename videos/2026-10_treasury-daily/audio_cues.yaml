@@ -142,14 +142,14 @@ events:
     gain_db: -8
     category: texture
     duck: false
-  - at_ms: 10973
-    hit_ms: 11133
-    frame: 334
-    shot: S05
-    cue: whip_in
-    sound: hf_whoosh
-    file: audio/sfx/hf/whoosh-short.mp3
-    gain_db: -14
+  - at_ms: 10939
+    hit_ms: 11000
+    frame: 330
+    shot: S04
+    cue: burst_bloom
+    sound: bloom_whoosh
+    file: audio/sfx/synth/bloom_whoosh.wav
+    gain_db: -4
     category: motion
     duck: true
   - at_ms: 11263
@@ -213,6 +213,16 @@ events:
     category: hit
     duck: true
     trim_ms: 600
+  - at_ms: 12550
+    hit_ms: 13000
+    frame: 390
+    shot: S05
+    cue: recede_swoosh
+    sound: deep_swoosh
+    file: audio/sfx/synth/deep_swoosh.wav
+    gain_db: -9
+    category: motion
+    duck: true
   - at_ms: 13473
     hit_ms: 13633
     frame: 409
@@ -223,14 +233,34 @@ events:
     gain_db: -15
     category: motion
     duck: true
-  - at_ms: 15246
-    hit_ms: 15266
-    frame: 458
+  - at_ms: 14873
+    hit_ms: 15033
+    frame: 451
+    shot: S06
+    cue: vertical_whip
+    sound: hf_whoosh
+    file: audio/sfx/hf/whoosh-short.mp3
+    gain_db: -6
+    category: motion
+    duck: true
+  - at_ms: 15280
+    hit_ms: 15300
+    frame: 459
     shot: S07
     cue: shimmer
     sound: hf_shimmer
     file: audio/sfx/hf/sparkle.mp3
     gain_db: -14
+    category: texture
+    duck: false
+  - at_ms: 15800
+    hit_ms: 16100
+    frame: 483
+    shot: S07
+    cue: flood
+    sound: reveal_swell
+    file: audio/sfx/synth/reveal_swell.wav
+    gain_db: -10
     category: texture
     duck: false
   - at_ms: 16016

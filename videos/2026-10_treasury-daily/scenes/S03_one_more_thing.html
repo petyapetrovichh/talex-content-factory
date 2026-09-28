@@ -33,18 +33,6 @@
           position: absolute;
           inset: 0;
         }
-        .s03-blob {
-          position: absolute;
-          border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.2), rgba(80, 150, 0, 0.07) 55%, rgba(111, 240, 0, 0) 100%);
-        }
-        #s03-blob-a { left: -200px; top: -260px; width: 1000px; height: 800px; }
-        #s03-blob-b { left: 700px; top: 520px; width: 1000px; height: 800px; }
-        #s03-vignette {
-          position: absolute;
-          inset: 0;
-          background: var(--tx-vignette);
-        }
         #s03-group {
           position: absolute;
           inset: 0;
@@ -96,9 +84,6 @@
           </filter>
         </svg>
         <div id="s03-bg" data-layout-allow-overflow="true">
-          <div class="s03-blob" id="s03-blob-a"></div>
-          <div class="s03-blob" id="s03-blob-b"></div>
-          <div id="s03-vignette"></div>
         </div>
         <div id="s03-cam">
           <div id="s03-shake">
@@ -183,8 +168,6 @@
 
           // ---------- never static: drift + slow push ----------
           tl.fromTo("#s03-cam", { scale: 1 }, { scale: 1.04, duration: END, ease: "sine.inOut" }, 0);
-          tl.fromTo("#s03-blob-a", { x: 0, y: 0 }, { x: 120, y: 60, duration: END, ease: "sine.inOut" }, 0);
-          tl.fromTo("#s03-blob-b", { x: 0, y: 0 }, { x: -120, y: -50, duration: END, ease: "sine.inOut" }, 0);
 
           // ---------- whip up into S04 (vertical blur) ----------
           const w0 = L(S.transition_out.start), w1 = L(S.transition_out.end);

@@ -29,29 +29,23 @@
         }
         #s04-bg,
         #s04-cam,
-        #s04-streaks {
+        #s04-burst {
           position: absolute;
           inset: 0;
         }
-        .s04-blob {
+        #s04-bloomcore {
           position: absolute;
+          left: 420px;
+          top: 240px;
+          width: 600px;
+          height: 600px;
           border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.18), rgba(80, 150, 0, 0.06) 55%, rgba(111, 240, 0, 0) 100%);
-        }
-        #s04-blob-a { left: -300px; top: -200px; width: 1000px; height: 800px; }
-        #s04-floor {
-          position: absolute;
-          left: 220px;
-          top: 820px;
-          width: 1000px;
-          height: 420px;
-          border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.28), rgba(111, 240, 0, 0.07) 55%, rgba(111, 240, 0, 0) 100%);
-        }
-        #s04-vignette {
-          position: absolute;
-          inset: 0;
-          background: var(--tx-vignette);
+          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.95), rgba(111, 240, 0, 0.55) 55%, rgba(111, 240, 0, 0) 100%);
+          -webkit-mask-image: radial-gradient(circle, #000 2.6px, rgba(0, 0, 0, 0) 3.2px);
+          mask-image: radial-gradient(circle, #000 2.6px, rgba(0, 0, 0, 0) 3.2px);
+          -webkit-mask-size: 14px 14px;
+          mask-size: 14px 14px;
+          opacity: 0;
         }
         #s04-rise {
           position: absolute;
@@ -146,14 +140,11 @@
           <filter id="s04-vblur" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB">
             <feGaussianBlur id="s04-vblur-fe" stdDeviation="0 0" />
           </filter>
-          <filter id="s04-hblur" x="-20%" y="-10%" width="140%" height="120%" color-interpolation-filters="sRGB">
+          <filter id="s04-hblur" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
             <feGaussianBlur id="s04-hblur-fe" stdDeviation="0 0" />
           </filter>
         </svg>
         <div id="s04-bg" data-layout-allow-overflow="true">
-          <div class="s04-blob" id="s04-blob-a"></div>
-          <div id="s04-floor"></div>
-          <div id="s04-vignette"></div>
         </div>
         <div id="s04-cam" data-layout-allow-overflow="true">
           <div id="s04-rise">
@@ -171,7 +162,8 @@
         </div>
         <div id="s04-hudband"></div>
         <div id="s04-hud" data-layout-allow-overlap="true"></div>
-        <div id="s04-streaks"></div>
+        <div id="s04-burst"></div>
+        <div id="s04-bloomcore"></div>
       </div>
 
       <script>
@@ -240,16 +232,39 @@
 
           // ---------- living background ----------
           tl.fromTo("#s04-sheen", { x: -260 }, { x: 260, duration: END, ease: "sine.inOut" }, 0);
-          tl.fromTo("#s04-blob-a", { x: 0, y: 0 }, { x: 160, y: 80, duration: END, ease: "sine.inOut" }, 0);
-          tl.fromTo("#s04-floor", { scale: 0.85, opacity: 0.6 }, { scale: 1.1, opacity: 1, duration: END, ease: "sine.inOut" }, 0);
 
-          // ---------- whip left into S05 ----------
-          const w0 = L(S.transition_out.start), w1 = L(S.transition_out.end);
-          tl.to("#s04-cam", { x: -1500, duration: w1 - w0, ease: "power3.in" }, w0);
-          tl.to(["#s04-hud", "#s04-hudband"], { x: -1500, duration: w1 - w0, ease: "power3.in" }, w0);
-          FX.driver(tl, w0 - 0.001, w1 - w0, (t, p) => $("s04-hblur-fe").setAttribute("stdDeviation", `${(p <= 0 ? 0 : 60 * p).toFixed(1)} 0`));
+          // ---------- T1 "radial burst + bloom" (reference/higgsfield/transitions/T1) ----------
+          // 1) the camera dives into the highlighted bar (re-centered, zoom blur)
+          // 2) the bar bursts into radial zoom-blur shards from the center (T1 frame 7)
+          // 3) S05 opens on the green halftone bloom that floods the frame and clears to off-white (T1 frames 8–10)
+          const X = S.transition_out;
+          const d0 = L(X.push_start), bz = L(X.burst_at), xe = L(X.end);
+          tl.to("#s04-cam", { scale: 3.4, x: 720 - cx, y: 540 - cy, duration: bz - d0, ease: "power3.in" }, d0);
+          tl.to(["#s04-hud", "#s04-hudband"], { opacity: 0, duration: (bz - d0) * 0.8, ease: "power2.in" }, d0);
+          FX.driver(tl, d0 - 0.001, xe - d0, (t, p) => {
+            const k = t - d0;
+            const b = p <= 0 ? 0 : Math.min(18, (k / (bz - d0)) * 14); // zoom smear grows into the burst
+            $("s04-hblur-fe").setAttribute("stdDeviation", `${b.toFixed(1)} ${b.toFixed(1)}`);
+          });
           $("s04-cam").style.filter = "url(#s04-hblur)";
-          FX.streaks(tl, $("s04-streaks"), { at: w0 - 0.03, span: 0.1, count: 10, dir: -1, colors: [C.violet, C.green], seed: 41 });
+          tl.to("#s04-cam", { opacity: 0, duration: 0.05, ease: "none" }, bz);
+          // shards: long thin radial smears of the bar (grey / green / white), flying outward in ~3 frames
+          const burst = $("s04-burst");
+          for (let i = 0; i < 44; i++) {
+            const ang = (i / 44) * 360 + FX.hash(i * 3 + 1) * 8;
+            const rad = (ang * Math.PI) / 180;
+            const len = 120 + FX.hash(i * 5 + 2) * 300;
+            const th = 3 + Math.round(FX.hash(i * 7 + 3) * 9);
+            const col = i % 5 === 0 ? C.green : i % 3 === 0 ? "rgba(247,247,247,0.85)" : "rgba(170,170,170,0.7)";
+            const d = document.createElement("div");
+            d.style.cssText = `position:absolute;left:${720 - len / 2}px;top:${540 - th / 2}px;width:${len}px;height:${th}px;border-radius:${th}px;background:linear-gradient(90deg, rgba(0,0,0,0), ${col} 55%, rgba(0,0,0,0));opacity:0;`;
+            burst.appendChild(d);
+            const r0 = 30 + FX.hash(i * 11 + 4) * 80, r1 = 420 + FX.hash(i * 13 + 5) * 520;
+            tl.fromTo(d, { x: Math.cos(rad) * r0, y: Math.sin(rad) * r0, rotation: ang, scaleX: 0.4, opacity: 0.95 },
+              { x: Math.cos(rad) * r1, y: Math.sin(rad) * r1, rotation: ang, scaleX: 1.8, opacity: 0, duration: xe - bz + 0.02, ease: "power2.out", immediateRender: false }, bz);
+          }
+          // the green halftone bloom begins at the core of the burst (S05 carries the flood)
+          tl.fromTo("#s04-bloomcore", { scale: 0.2, opacity: 0 }, { scale: 1.4, opacity: 1, duration: xe - bz, ease: "power2.in", immediateRender: false }, bz);
 
           window.__timelines["S04_vote"] = tl;
         })();

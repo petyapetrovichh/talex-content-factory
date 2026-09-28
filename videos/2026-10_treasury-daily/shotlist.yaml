@@ -1,4 +1,4 @@
-# Shotlist — 2026-10_treasury-daily (full announcement, v1)
+# Shotlist — 2026-10_treasury-daily (full announcement, v2)
 #
 # ALL times are GLOBAL seconds on the video timeline, 30 fps. pipeline/lib.mjs snaps every time field
 # (start/end/at/tail/…_at/review_at) to the frame grid, so "8.067" means exactly frame 242.
@@ -15,12 +15,12 @@
 
 video:
   id: 2026-10_treasury-daily
-  title: TaleX Treasury — daily injections
+  title: TaleX Treasury — daily injections (v2)
   width: 1440
   height: 1080
   fps: 30
   duration: 18.133          # = end of track.mp3 (18.129 s) rounded up to the next frame (544 frames)
-  output: treasury_daily_v1.mp4
+  output: treasury_daily_v2.mp4
   music: audio/music/track.mp3
   music_drop: 8.067
   beats:
@@ -46,7 +46,7 @@ shots:
     start: 0.0
     end: 5.067              # beat
     tail: 0.5               # renders under S02 for the compress-into-a-stream hand-off
-    background: black — radial vignette, drifting green glow blobs (never static), slow push-in while counting
+    background: graphite #141414 — subtle radial vignette, no glow blobs; motion from the slow push-in while counting
     visual: >
       Big centered green number with strong bloom. Plain digital RE-COUNT (value updates every frame, no
       odometer), comma-formatted, tabular nums. Three bursts, each bigger than the last. Label under the
@@ -86,7 +86,7 @@ shots:
     scene: scenes/S02_treasury.html
     start: 5.067
     end: 8.067              # the drop
-    background: black → white (the white frame pushes in from the right = camera pan), then white with drifting green glow + dot field
+    background: graphite → off-white #F7F7F7 (the white frame pushes in from the right = camera pan), faint static green/blue corner wash
     visual: >
       A glowing green stream of light/particles (the compressed number) is pulled to the right while the
       white frame pushes in from the right with the capsule. The stream pours into the capsule: a rounded
@@ -129,7 +129,7 @@ shots:
     scene: scenes/S03_one_more_thing.html
     start: 8.067            # EXACTLY the drop (frame 242)
     end: 9.317              # the off-beat hit at 9.33 (detected onset 9.334)
-    background: black, drifting glow, slow push-in
+    background: graphite #141414, flat; slow push-in
     visual: >
       Hard cut on the drop. "BUT THERE'S ONE MORE THING" slams in (scale punch 1.35→1, RGB split, white
       flash, sparks), then the three dots pop in one by one on the next beats/eighths.
@@ -152,7 +152,7 @@ shots:
     scene: scenes/S04_vote.html
     start: 9.317
     end: 11.067             # beat
-    background: black with a soft green floor glow
+    background: graphite #141414, flat (no glow blobs); motion from the camera only
     visual: >
       A modern phone in 3D perspective (tilted, soft reflection) rises from the bottom with motion blur,
       showing the cropped poll screenshot. The camera pushes in toward the "daily 97%" bar, which gets a
@@ -164,14 +164,19 @@ shots:
     bar_rect: [153, 1050, 937, 118]     # "daily 97%" bar in the crop, px [x, y, w, h]
     phone_rise: { start: 9.317, end: 9.75 }
     text_reveal: { start: 9.40, duration: 0.5 }
-    push_in: { start: 9.75, end: 11.067 }
+    push_in: { start: 9.75, end: 10.867 }
     highlight_at: 10.067                                  # beat
-    camera: push-in toward the bar (scale 1 → 1.55, re-framed on the bar), tilt eases slightly
-    transition_out: { type: whip_left, start: 10.967, end: 11.067 }
-    review_at: [9.4, 9.6, 9.85, 10.1, 10.4, 10.9]
+    camera: push-in toward the bar (scale 1 → 1.6, re-framed on the bar), tilt eases slightly
+    transition_out:
+      type: radial_burst_bloom            # strip T1 (reference/higgsfield/transitions/T1_radial_burst_bloom.jpg)
+      push_start: 10.867                  # camera dives into the highlighted bar (≈ 2.5 strip frames)
+      burst_at: 10.967                    # the bar bursts into radial zoom-blur shards (T1 frame 7)
+      end: 11.067                         # S05 opens on the green halftone bloom (T1 frames 8–10)
+    review_at: [9.4, 9.6, 9.85, 10.1, 10.4, 10.9, 10.967, 11.033]
     sfx:
-      - { cue: phone_rise, sound: hf_whoosh, at: 9.45,  gain_db: -13 }
-      - { cue: bar_pop,    sound: hf_pop,    at: 10.067, gain_db: -8 }
+      - { cue: phone_rise,  sound: hf_whoosh,    at: 9.45,   gain_db: -13 }
+      - { cue: bar_pop,     sound: hf_pop,       at: 10.067, gain_db: -8 }
+      - { cue: burst_bloom, sound: bloom_whoosh, at: 11.0,   gain_db: -4 }
 
   # ------------------------------------------------------------------------------------------------
   - id: S05
@@ -179,7 +184,7 @@ shots:
     scene: scenes/S05_speedometer.html
     start: 11.067
     end: 13.067
-    background: white (push/whip in from the right with streaks), dot field
+    background: off-white #F7F7F7, halftone dot disc behind the gauge, faint static green/blue corner wash
     visual: >
       A large arc gauge of 7 LARGE segments, each with an upright day label. Start: only MON lit (green,
       black label) and "×1" in the center; the rest grey. TUE → SUN light up one per eighth-note beat
@@ -189,21 +194,28 @@ shots:
       - { key: s05_segments, role: segment_labels }
       - { key: s05_to, role: center_number }
       - { key: s05_caption, role: caption, reveal: glitch }
-    push_in: { start: 11.067, end: 11.30 }
+    transition_in:
+      type: halftone_bloom                # strip T1 frames 8–10: green halftone bloom floods, then clears
+      start: 11.067
+      flood_at: 11.133                    # frame fully covered
+      clear_end: 11.30                    # cleared to off-white, speedometer already there
     caption_reveal: { start: 11.25, duration: 0.4 }
     lights_at: [11.317, 11.567, 11.817, 12.067, 12.317, 12.567]   # TUE … SUN (eighths; SUN on the beat)
     burst_at: 12.567
     camera: slow push-in 1.00→1.04
-    transition_out: { type: whip_left, start: 12.967, end: 13.067 }
-    review_at: [11.15, 11.33, 11.6, 11.85, 12.1, 12.35, 12.6, 12.9]
+    transition_out:
+      type: recede_into_depth             # strip T2: gauge shrinks into depth with blur + color shift
+      start: 12.817
+      end: 13.067                         # background darkens off-white → graphite over the same window
+    review_at: [11.1, 11.2, 11.33, 11.6, 12.1, 12.6, 12.9, 13.03]
     sfx:
-      - { cue: whip_in, sound: hf_whoosh, at: 11.12, gain_db: -14 }
       - { cue: tue, sound: hf_tick, at: 11.317, gain_db: -4 }
       - { cue: wed, sound: hf_tick, at: 11.567, gain_db: -4 }
       - { cue: thu, sound: hf_tick, at: 11.817, gain_db: -4 }
       - { cue: fri, sound: hf_tick, at: 12.067, gain_db: -4 }
       - { cue: sat, sound: hf_tick, at: 12.317, gain_db: -4 }
       - { cue: sun_impact, sound: hf_impact_small, at: 12.567, gain_db: -13 }
+      - { cue: recede_swoosh, sound: deep_swoosh, at: 13.0, gain_db: -9 }
 
   # ------------------------------------------------------------------------------------------------
   - id: S06
@@ -211,25 +223,34 @@ shots:
     scene: scenes/S06_daily.html
     start: 13.067
     end: 15.067
-    background: black, drifting glow
+    background: graphite #141414, faint halftone dot grid behind the chart area only
     visual: >
       After the Higgsfield "10x ENTERPRISE ADOPTION SINCE JUNE" shot: a huge green "DAILY" with the caption
-      under it. Then a thin green line chart with dots draws in ABOVE it, left to right, rising, and its
-      appearance pushes the text block down. Last dot flashes. X-axis labels only, no values, no Y-axis.
+      under it. Then a thin green line chart draws in ABOVE it, left to right, rising, through exactly 4 dots —
+      one above each date label — and its appearance pushes the text block down. The last dot (OCT 1)
+      flashes. X-axis labels only, no values, no Y-axis.
     text:
       - { key: s06_headline, role: headline }
       - { key: s06_caption, role: caption, reveal: glitch }
       - { key: s06_axis, role: axis_labels }
-    headline_in: { start: 13.067 }
-    caption_reveal: { start: 13.15, duration: 0.4 }
+    transition_in:
+      type: macro_pullback                # strip T4 second half: huge out-of-focus DAILY pulls back into focus
+      start: 13.067
+      end: 13.43
+    caption_reveal: { start: 13.317, duration: 0.4 }      # after the rack focus (eighth)
     chart_draw: { start: 13.567, end: 14.567 }            # beat → beat
     last_dot_at: 14.567
-    chart_points: [0.06, 0.12, 0.25, 0.45, 0.62, 1.0]     # relative heights (illustrative)
+    chart_points: [0.1, 0.3, 0.58, 1.0]                   # one dot per axis label (SEP 28 … OCT 1), relative heights
     camera: slow push-in 1.00→1.04
-    transition_out: { type: whip_left, start: 14.967, end: 15.067 }
-    review_at: [13.1, 13.35, 13.7, 14.0, 14.3, 14.6, 14.9]
+    transition_out:
+      type: vertical_whip                 # strip T3 first half: content drifts up, then streaks upward
+      drift_start: 14.8
+      start: 14.967
+      end: 15.067
+    review_at: [13.1, 13.2, 13.35, 13.7, 14.1, 14.6, 14.9, 15.03]
     sfx:
       - { cue: chart_swoosh, sound: hf_whoosh, at: 13.62, gain_db: -15 }
+      - { cue: vertical_whip, sound: hf_whoosh, at: 15.03, gain_db: -6 }
 
   # ------------------------------------------------------------------------------------------------
   - id: S07
@@ -238,21 +259,29 @@ shots:
     start: 15.067
     end: 16.567
     tail: 0.233             # renders under S08 while the pill shrinks to the center and dissolves
-    background: black, drifting glow
+    background: off-white #F7F7F7 (slides up from the bottom), flooded to graphite #141414 from the click point
     visual: >
-      A pill badge with the URL (echo-outline entry). A green gradient light runs once around the outline.
-      A cursor glides in, hovers (pill brightens), clicks — ripple — and the pill springs up with overshoot.
+      Starts on off-white: pill with a thin black outline and black URL; a green gradient light runs around
+      the outline. A cursor glides in, hovers, clicks — from the click point a circular reveal floods the frame
+      to graphite; at the same moment the pill springs up with overshoot and its outline + text invert to white;
+      the green light keeps running around it. Then into S08.
     text:
       - { key: s07_url, role: pill_text }
-    pill_in: { start: 15.067, end: 15.40 }
-    gradient_run: { start: 15.25, end: 15.95 }
+    transition_in:
+      type: vertical_whip                 # strip T3 second half: the new off-white frame slides up from the bottom
+      start: 15.067
+      end: 15.35
+    pill_in: { start: 15.15, end: 15.45 }
+    gradient_run: { start: 15.30, end: 16.80, laps: 1.6 }
     cursor: { enter_at: 15.55, hover_at: 15.90, click_at: 16.067 }   # click on the beat
+    flood: { start: 16.067, end: 16.40 }                             # circular reveal to graphite from the cursor
     spring: { start: 16.067 }
     camera: slow push-in
-    review_at: [15.15, 15.35, 15.6, 15.95, 16.1, 16.4]
+    review_at: [15.13, 15.25, 15.5, 15.95, 16.1, 16.2, 16.4, 16.55]
     sfx:
-      - { cue: shimmer, sound: hf_shimmer, at: 15.25, gain_db: -14 }
-      - { cue: click,   sound: hf_click,   at: 16.067, gain_db: -6 }
+      - { cue: shimmer, sound: hf_shimmer,   at: 15.30,  gain_db: -14 }
+      - { cue: click,   sound: hf_click,     at: 16.067, gain_db: -6 }
+      - { cue: flood,   sound: reveal_swell, at: 16.10,  gain_db: -10 }
 
   # ------------------------------------------------------------------------------------------------
   - id: S08
@@ -260,7 +289,7 @@ shots:
     scene: scenes/S08_logo.html
     start: 16.567
     end: 18.133             # end of the track
-    background: black, soft green glow breathing
+    background: graphite #141414, flat; the logo's own bloom breathes
     visual: >
       The pill shrinks to the center and dissolves; the full TaleX logo (light version) slides in from a HUGE
       size into the center with motion blur and eases to a stop, then holds to the last frame.
