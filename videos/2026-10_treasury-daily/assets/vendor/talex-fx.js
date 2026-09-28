@@ -88,6 +88,10 @@
     }
     const slots = [];
     [...text].forEach((ch, i) => {
+      if (ch === "\n") {
+        el.appendChild(document.createElement("br")); // line break (see wrapWords)
+        return;
+      }
       const c = document.createElement("span");
       c.style.cssText = "position:relative;display:inline-block;";
       c.setAttribute("data-layout-allow-overlap", "true"); // scramble glyph intentionally overlays its slot
@@ -244,6 +248,54 @@
     driver(tl, c.start, c.end - c.start, apply);
   }
 
+  /**
+   * Break copy into lines for a narrow frame, joined with "\n" (glitchReveal renders it as <br>).
+   * spec: { lines: N } → N lines with the longest line as short as possible (ties: the evenest split); { after: [2, …] } → explicit word counts per line. No spec → text unchanged.
+   */
+  function wrapWords(text, spec) {
+    const words = String(text).split(" ");
+    if (!spec) return text;
+    let counts = spec.after ? spec.after.slice() : null;
+    if (!counts) {
+      const n = Math.min(spec.lines || 1, words.length);
+      let best = null;
+      const rec = (i, left, acc) => {
+        if (left === 1) {
+          const c = acc.concat(words.length - i);
+          const lens = [];
+          let k = 0;
+          c.forEach((m) => lens.push(words.slice(k, (k += m)).join(" ").length));
+          const score = Math.max(...lens) * 1e4 + lens.reduce((a, l) => a + l * l, 0); // shortest longest line, then evenest
+          if (!best || score < best.score) best = { score, c };
+          return;
+        }
+        for (let m = 1; i + m <= words.length - (left - 1); m++) rec(i + m, left - 1, acc.concat(m));
+      };
+      rec(0, n, []);
+      counts = best.c.slice(0, -1);
+    }
+    const out = [];
+    let k = 0;
+    counts.forEach((m) => out.push(words.slice(k, (k += m)).join(" ")));
+    if (k < words.length) out.push(words.slice(k).join(" "));
+    return out.filter(Boolean).join("\n");
+  }
+
+  /**
+   * Format variants: place a scene's 1440×1080 design "stage" centered in the actual frame, scaled by
+   * spec.scale and shifted down by spec.dy (frame px). Returns the frame's visible box in STAGE
+   * coordinates { x0, x1, y0, y1, k } so full-bleed layers inside the stage can cover it.
+   */
+  function stage(el, spec, video) {
+    const k = (spec && spec.scale) || 1, dy = (spec && spec.dy) || 0;
+    const W = video.width, H = video.height;
+    Object.assign(el.style, {
+      position: "absolute", left: `${(W - 1440) / 2}px`, top: `${(H - 1080) / 2}px`, width: "1440px", height: "1080px",
+      transformOrigin: "720px 540px", transform: `translate(0px, ${dy}px) scale(${k})`,
+    });
+    return { k, x0: 720 - W / 2 / k, x1: 720 + W / 2 / k, y0: 540 - (H / 2 + dy) / k, y1: 540 + (H / 2 - dy) / k };
+  }
+
   /** Eased value between a→b over [t0,t1] with a GSAP ease name (pure helper for driver maths). */
   function tween(t, t0, t1, a, b, easeName) {
     const p = Math.max(0, Math.min(1, (t - t0) / (t1 - t0)));
@@ -251,5 +303,5 @@
     return a + (b - a) * e;
   }
 
-  window.TalexFX = { hash, driver, formatNumber, counterValue, glitchReveal, sparks, ring, shake, rgbSplit, streaks, blurMove, tween };
+  window.TalexFX = { hash, driver, formatNumber, counterValue, glitchReveal, sparks, ring, shake, rgbSplit, streaks, blurMove, tween, wrapWords, stage };
 })();
