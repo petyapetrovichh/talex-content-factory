@@ -1,0 +1,274 @@
+<!doctype html>
+<!--
+  S04 — THE VOTE. A modern phone in 3D perspective (tilted, glass sheen, soft floor reflection) rises from
+  the bottom with vertical motion blur, showing the cropped X poll. The camera pushes in toward the
+  "daily 97%" bar, which gets a pulsing green highlight. Headline above (glitch reveal, highlight words green)
+  stays un-zoomed (HUD layer) so it remains readable.
+  Copy from brief.md, timing/geometry from shotlist.yaml (window.__TALEX__). Scene-local time.
+-->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template id="S04_vote-template">
+      <style>
+        @font-face {
+          font-family: "Archivo";
+          src: url("assets/fonts/Archivo-Variable.woff2") format("woff2");
+          font-weight: 100 900;
+          font-stretch: 62% 125%;
+          font-display: block;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: var(--tx-black);
+          font-family: "Archivo", sans-serif;
+        }
+        #s04-bg,
+        #s04-cam,
+        #s04-burst {
+          position: absolute;
+          inset: 0;
+        }
+        #s04-bloomcore {
+          position: absolute;
+          left: 420px;
+          top: 240px;
+          width: 600px;
+          height: 600px;
+          border-radius: 50%;
+          background: radial-gradient(closest-side, rgba(111, 240, 0, 0.95), rgba(111, 240, 0, 0.55) 55%, rgba(111, 240, 0, 0) 100%);
+          -webkit-mask-image: radial-gradient(circle, #000 2.6px, rgba(0, 0, 0, 0) 3.2px);
+          mask-image: radial-gradient(circle, #000 2.6px, rgba(0, 0, 0, 0) 3.2px);
+          -webkit-mask-size: 14px 14px;
+          mask-size: 14px 14px;
+          opacity: 0;
+        }
+        #s04-rise {
+          position: absolute;
+          inset: 0;
+          filter: url(#s04-vblur);
+        }
+        #s04-stage {
+          position: absolute;
+          inset: 0;
+          perspective: 1700px;
+          perspective-origin: 50% 40%;
+        }
+        #s04-phone {
+          position: absolute;
+          left: 485px;
+          top: 215px;
+          width: 470px;
+          height: 960px;
+          border-radius: 64px;
+          background: linear-gradient(145deg, #3a3d42 0%, #16181b 35%, #0b0c0e 70%, #2a2d31 100%);
+          box-shadow: 0 0 0 2px #6a6f76, 0 0 0 4px #1a1c1f, 0 40px 90px rgba(0, 0, 0, 0.7), 0 0 90px rgba(111, 240, 0, 0.3), -18px 0 60px rgba(111, 240, 0, 0.18);
+          -webkit-box-reflect: below 18px linear-gradient(transparent 62%, rgba(255, 255, 255, 0.16));
+        }
+        #s04-screen {
+          position: absolute;
+          left: 16px;
+          top: 16px;
+          right: 16px;
+          bottom: 16px;
+          border-radius: 50px;
+          overflow: hidden;
+          background: #000;
+        }
+        #s04-island {
+          position: absolute;
+          left: 50%;
+          top: 18px;
+          width: 110px;
+          height: 32px;
+          margin-left: -55px;
+          border-radius: 20px;
+          background: #000;
+          box-shadow: 0 0 0 1px #1c1d20;
+        }
+        #s04-shot {
+          position: absolute;
+          left: 0;
+          top: 78px;
+          width: 438px;
+          display: block;
+        }
+        #s04-hl {
+          position: absolute;
+          border-radius: 10px;
+          border: 3px solid var(--tx-green);
+          box-shadow: 0 0 18px rgba(111, 240, 0, 0.9), 0 0 42px rgba(111, 240, 0, 0.55), inset 0 0 16px rgba(111, 240, 0, 0.45);
+          background: rgba(111, 240, 0, 0.14);
+          opacity: 0;
+        }
+        #s04-sheen {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(115deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.13) 45%, rgba(255, 255, 255, 0) 58%);
+          pointer-events: none;
+        }
+        #s04-hudband {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 300px;
+          background: linear-gradient(180deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.75) 55%, rgba(0, 0, 0, 0) 100%);
+        }
+        #s04-hud {
+          position: absolute;
+          left: 0;
+          top: 86px;
+          width: 100%;
+          text-align: center;
+          font-size: 66px;
+          line-height: 1;
+          font-weight: var(--tx-display-weight);
+          font-stretch: var(--tx-display-stretch);
+          letter-spacing: -0.01em;
+          text-transform: uppercase;
+          color: var(--tx-white);
+        }
+      </style>
+
+      <div id="root" data-composition-id="S04_vote" data-width="1440" data-height="1080">
+        <svg width="0" height="0" style="position: absolute">
+          <filter id="s04-vblur" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s04-vblur-fe" stdDeviation="0 0" />
+          </filter>
+          <filter id="s04-hblur" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s04-hblur-fe" stdDeviation="0 0" />
+          </filter>
+        </svg>
+        <div id="s04-bg" data-layout-allow-overflow="true">
+        </div>
+        <div id="s04-cam" data-layout-allow-overflow="true">
+          <div id="s04-rise">
+            <div id="s04-stage">
+              <div id="s04-phone" data-layout-allow-overflow="true">
+                <div id="s04-screen">
+                  <img id="s04-shot" alt="" />
+                  <div id="s04-hl"></div>
+                  <div id="s04-island"></div>
+                  <div id="s04-sheen"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="s04-hudband"></div>
+        <div id="s04-hud" data-layout-allow-overlap="true"></div>
+        <div id="s04-burst"></div>
+        <div id="s04-bloomcore"></div>
+      </div>
+
+      <script>
+        (function () {
+          const D = window.__TALEX__;
+          const FX = window.TalexFX;
+          const S = D.shots.S04;
+          const T = D.tokens;
+          const C = T.colors;
+          const copy = D.copy;
+          const L = (t) => t - S.start;
+          const $ = (id) => document.getElementById(id);
+          const tl = gsap.timeline({ paused: true });
+          const END = L(S.end);
+
+          // ---------- screenshot + the highlight exactly over the "daily 97%" bar ----------
+          const IMG_W = 1176; // crop width (px) — see shotlist image
+          const shotW = 438;
+          const k = shotW / IMG_W;
+          const img = $("s04-shot");
+          img.src = S.image;
+          const [bx, by, bw, bh] = S.bar_rect;
+          const hl = $("s04-hl");
+          const pad = 6;
+          Object.assign(hl.style, { left: `${bx * k - pad}px`, top: `${78 + by * k - pad}px`, width: `${bw * k + 2 * pad}px`, height: `${bh * k + 2 * pad}px` });
+
+          // ---------- phone pose (3D tilt) ----------
+          const pose = (p) => ({ rotationX: 18 - 6 * p, rotationY: -20 + 8 * p, rotationZ: 5 - 2 * p });
+          gsap.set("#s04-phone", { ...pose(0) });
+
+          // camera push-in target: the bar's on-screen center at rest (measured once, deterministic)
+          const r = hl.getBoundingClientRect();
+          const root = $("root").getBoundingClientRect();
+          const cx = r.left - root.left + r.width / 2;
+          const cy = r.top - root.top + r.height / 2;
+          $("s04-cam").style.transformOrigin = `${cx.toFixed(0)}px ${cy.toFixed(0)}px`;
+
+          // ---------- rise from the bottom with vertical motion blur ----------
+          const r0 = L(S.phone_rise.start), r1 = L(S.phone_rise.end);
+          FX.blurMove(tl, $("s04-rise"), $("s04-vblur-fe"), {
+            start: 0, end: r1 + 0.05, max: 55, k: 90,
+            fn: (t) => ({ x: 0, y: FX.tween(t, r0, r1, 980, 0, "expo.out") }),
+          });
+          tl.fromTo("#s04-phone", { ...pose(-0.6) }, { ...pose(0), duration: r1 - r0 + 0.2, ease: "power3.out", immediateRender: false }, r0);
+
+          // ---------- headline (glitch reveal, highlight words in green) ----------
+          FX.glitchReveal(tl, $("s04-hud"), copy.s04_text, {
+            start: L(S.text_reveal.start), duration: S.text_reveal.duration, seed: 44,
+            color: C.white, flash: T.glitch_reveal.resolve_flash_on_black, charset: T.glitch_reveal.charset,
+            gap: T.glitch_reveal.gap_probability, step: T.glitch_reveal.step_s,
+            highlight: copy.s04_highlight, highlightColor: C.green,
+          });
+          tl.fromTo("#s04-hud", { y: -16 }, { y: 0, duration: 0.45, ease: T.easing.snap }, L(S.text_reveal.start));
+
+          // ---------- camera pushes in toward the bar; tilt relaxes ----------
+          const p0 = L(S.push_in.start), p1 = L(S.push_in.end);
+          tl.fromTo("#s04-cam", { scale: 1, x: 0, y: 0 }, { scale: 1.6, x: 720 - cx, y: 740 - cy, duration: p1 - p0, ease: "power2.inOut" }, p0);
+          tl.to("#s04-phone", { ...pose(1), duration: p1 - p0, ease: "sine.inOut" }, p0);
+
+          // ---------- highlight: pulsing green glow on the 97% bar ----------
+          const h0 = L(S.highlight_at);
+          tl.fromTo("#s04-hl", { opacity: 0, scale: 1.25 }, { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(2.2)" }, h0);
+          const pulses = 3, per = 0.25;
+          tl.fromTo("#s04-hl", { boxShadow: "0 0 18px rgba(111,240,0,0.9), 0 0 42px rgba(111,240,0,0.55), inset 0 0 16px rgba(111,240,0,0.45)" },
+            { boxShadow: "0 0 30px rgba(111,240,0,1), 0 0 80px rgba(111,240,0,0.8), inset 0 0 26px rgba(111,240,0,0.6)", duration: per, ease: "sine.inOut", repeat: pulses * 2 - 1, yoyo: true, immediateRender: false }, h0 + 0.18);
+
+          // ---------- living background ----------
+          tl.fromTo("#s04-sheen", { x: -260 }, { x: 260, duration: END, ease: "sine.inOut" }, 0);
+
+          // ---------- T1 "radial burst + bloom" (reference/higgsfield/transitions/T1) ----------
+          // 1) the camera dives into the highlighted bar (re-centered, zoom blur)
+          // 2) the bar bursts into radial zoom-blur shards from the center (T1 frame 7)
+          // 3) S05 opens on the green halftone bloom that floods the frame and clears to off-white (T1 frames 8–10)
+          const X = S.transition_out;
+          const d0 = L(X.push_start), bz = L(X.burst_at), xe = L(X.end);
+          tl.to("#s04-cam", { scale: 3.4, x: 720 - cx, y: 540 - cy, duration: bz - d0, ease: "power3.in" }, d0);
+          tl.to(["#s04-hud", "#s04-hudband"], { opacity: 0, duration: (bz - d0) * 0.8, ease: "power2.in" }, d0);
+          FX.driver(tl, d0 - 0.001, xe - d0, (t, p) => {
+            const k = t - d0;
+            const b = p <= 0 ? 0 : Math.min(18, (k / (bz - d0)) * 14); // zoom smear grows into the burst
+            $("s04-hblur-fe").setAttribute("stdDeviation", `${b.toFixed(1)} ${b.toFixed(1)}`);
+          });
+          $("s04-cam").style.filter = "url(#s04-hblur)";
+          tl.to("#s04-cam", { opacity: 0, duration: 0.05, ease: "none" }, bz);
+          // shards: long thin radial smears of the bar (grey / green / white), flying outward in ~3 frames
+          const burst = $("s04-burst");
+          for (let i = 0; i < 44; i++) {
+            const ang = (i / 44) * 360 + FX.hash(i * 3 + 1) * 8;
+            const rad = (ang * Math.PI) / 180;
+            const len = 120 + FX.hash(i * 5 + 2) * 300;
+            const th = 3 + Math.round(FX.hash(i * 7 + 3) * 9);
+            const col = i % 5 === 0 ? C.green : i % 3 === 0 ? "rgba(247,247,247,0.85)" : "rgba(170,170,170,0.7)";
+            const d = document.createElement("div");
+            d.style.cssText = `position:absolute;left:${720 - len / 2}px;top:${540 - th / 2}px;width:${len}px;height:${th}px;border-radius:${th}px;background:linear-gradient(90deg, rgba(0,0,0,0), ${col} 55%, rgba(0,0,0,0));opacity:0;`;
+            burst.appendChild(d);
+            const r0 = 30 + FX.hash(i * 11 + 4) * 80, r1 = 420 + FX.hash(i * 13 + 5) * 520;
+            tl.fromTo(d, { x: Math.cos(rad) * r0, y: Math.sin(rad) * r0, rotation: ang, scaleX: 0.4, opacity: 0.95 },
+              { x: Math.cos(rad) * r1, y: Math.sin(rad) * r1, rotation: ang, scaleX: 1.8, opacity: 0, duration: xe - bz + 0.02, ease: "power2.out", immediateRender: false }, bz);
+          }
+          // the green halftone bloom begins at the core of the burst (S05 carries the flood)
+          tl.fromTo("#s04-bloomcore", { scale: 0.2, opacity: 0 }, { scale: 1.4, opacity: 1, duration: xe - bz, ease: "power2.in", immediateRender: false }, bz);
+
+          window.__timelines["S04_vote"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

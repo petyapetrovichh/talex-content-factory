@@ -1,0 +1,184 @@
+<!doctype html>
+<!--
+  S03 — ONE MORE THING. Hard cut to black exactly on the drop. The line slams in (scale punch, zoom echoes,
+  RGB split, flash, shake, sparks); the three dots pop in on the next beats; whip up into S04.
+  Copy from brief.md, timing from shotlist.yaml (window.__TALEX__). Scene-local time.
+-->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template id="S03_one_more_thing-template">
+      <style>
+        @font-face {
+          font-family: "Archivo";
+          src: url("assets/fonts/Archivo-Variable.woff2") format("woff2");
+          font-weight: 100 900;
+          font-stretch: 62% 125%;
+          font-display: block;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: var(--tx-black);
+          font-family: "Archivo", sans-serif;
+        }
+        #s03-bg,
+        #s03-cam,
+        #s03-shake,
+        #s03-flash,
+        #s03-sparks {
+          position: absolute;
+          inset: 0;
+        }
+        #s03-group {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          filter: url(#s03-vblur);
+        }
+        #s03-stack {
+          display: grid;
+        }
+        .s03-text {
+          grid-area: 1 / 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          font-size: 110px;
+          line-height: 1.02;
+          font-weight: var(--tx-display-weight);
+          font-stretch: var(--tx-display-stretch);
+          letter-spacing: -0.015em;
+          text-transform: uppercase;
+          color: var(--tx-white);
+          white-space: nowrap;
+        }
+        .s03-copy {
+          opacity: 0;
+        }
+        .s03-line {
+          display: block;
+        }
+        .s03-dot {
+          display: inline-block;
+          color: var(--tx-green);
+          text-shadow: var(--tx-bloom);
+          opacity: 0;
+        }
+        #s03-flash {
+          background: radial-gradient(closest-side, rgba(255, 255, 255, 1), rgba(214, 255, 170, 0.7) 40%, rgba(111, 240, 0, 0) 100%);
+          mix-blend-mode: screen;
+          opacity: 0;
+        }
+      </style>
+
+      <div id="root" data-composition-id="S03_one_more_thing" data-width="1440" data-height="1080">
+        <svg width="0" height="0" style="position: absolute">
+          <filter id="s03-vblur" x="-10%" y="-60%" width="120%" height="220%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="s03-vblur-fe" stdDeviation="0 0" />
+          </filter>
+        </svg>
+        <div id="s03-bg" data-layout-allow-overflow="true">
+        </div>
+        <div id="s03-cam">
+          <div id="s03-shake">
+            <div id="s03-sparks"></div>
+            <div id="s03-group">
+              <div id="s03-stack">
+                <div class="s03-text s03-copy" id="s03-echo-1" data-layout-allow-overlap="true"></div>
+                <div class="s03-text s03-copy" id="s03-echo-2" data-layout-allow-overlap="true"></div>
+                <div class="s03-text s03-copy" id="s03-split-v" data-layout-allow-overlap="true"></div>
+                <div class="s03-text s03-copy" id="s03-split-g" data-layout-allow-overlap="true"></div>
+                <div class="s03-text" id="s03-text" data-layout-allow-overlap="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="s03-flash"></div>
+      </div>
+
+      <script>
+        (function () {
+          const D = window.__TALEX__;
+          const FX = window.TalexFX;
+          const S = D.shots.S03;
+          const T = D.tokens;
+          const C = T.colors;
+          const copy = D.copy;
+          const L = (t) => t - S.start;
+          const $ = (id) => document.getElementById(id);
+          const tl = gsap.timeline({ paused: true });
+          const END = L(S.end);
+
+          // two balanced lines ("BUT THERE'S" / "ONE MORE THING") + dots at the end of line 2
+          const words = copy.s03_text.split(" ");
+          let best = 1, bestD = Infinity;
+          for (let k = 1; k < words.length; k++) {
+            const d = Math.abs(words.slice(0, k).join(" ").length - words.slice(k).join(" ").length);
+            if (d < bestD) (bestD = d), (best = k);
+          }
+          const lines = [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+          const fill = (el, withDots) => {
+            el.innerHTML = "";
+            lines.forEach((ln, i) => {
+              const s = document.createElement("span");
+              s.className = "s03-line";
+              s.textContent = ln;
+              if (i === lines.length - 1)
+                [...copy.s03_dots].forEach((ch, j) => {
+                  const d = document.createElement("span");
+                  d.className = "s03-dot";
+                  d.textContent = ch;
+                  if (withDots) d.id = `s03-dot-${j}`;
+                  else d.style.visibility = "hidden";
+                  s.appendChild(d);
+                });
+              el.appendChild(s);
+            });
+          };
+          fill($("s03-text"), true);
+          ["s03-echo-1", "s03-echo-2", "s03-split-v", "s03-split-g"].forEach((id) => fill($(id), false));
+          $("s03-split-v").style.color = C.violet;
+          $("s03-split-g").style.color = C.green;
+          $("s03-echo-1").style.color = C.green;
+          $("s03-echo-2").style.color = C.violet;
+
+          // ---------- SLAM on the drop ----------
+          const t0 = L(S.slam.at);
+          tl.fromTo("#s03-stack", { scale: 1.12 }, { scale: 1, duration: 0.2, ease: "power4.out" }, t0);
+          tl.fromTo("#s03-text", { color: C.green_hot }, { color: C.white, duration: 0.35, ease: "power2.out", immediateRender: false }, t0);
+          // zoom echoes trail outward (motion smear of the punch)
+          tl.fromTo("#s03-echo-1", { scale: 1.12, opacity: 0.55 }, { scale: 1.35, opacity: 0, duration: 0.3, ease: "power2.out", immediateRender: false }, t0);
+          tl.fromTo("#s03-echo-2", { scale: 1.24, opacity: 0.4 }, { scale: 1.6, opacity: 0, duration: 0.34, ease: "power2.out", immediateRender: false }, t0);
+          FX.rgbSplit(tl, [$("s03-split-v"), $("s03-split-g")], { at: t0, frames: 3, px: T.rgb_split.offset_big_px, fps: D.video.fps, seed: 31 });
+          tl.fromTo("#s03-flash", { opacity: 1, scale: 0.6 }, { opacity: 0, scale: 1.8, duration: 0.22, ease: "power2.out", immediateRender: false }, t0);
+          FX.shake(tl, $("s03-shake"), { at: t0, amp: 6, dur: 0.35, seed: 13 });
+          FX.sparks(tl, $("s03-sparks"), { at: t0, count: 26, cx: 720, cy: 540, r0: 260, r1: 700, len: 60, thick: 4, dur: 0.5, color: C.green_hot, seed: 17 });
+
+          // ---------- dots on the next beats ----------
+          S.dots_at.forEach((at, j) => {
+            const t = L(at);
+            tl.fromTo(`#s03-dot-${j}`, { opacity: 0, scale: 0, y: -20 }, { opacity: 1, scale: 1, y: 0, duration: 0.22, ease: "back.out(3)" }, t);
+          });
+
+          // ---------- never static: drift + slow push ----------
+          tl.fromTo("#s03-cam", { scale: 1 }, { scale: 1.04, duration: END, ease: "sine.inOut" }, 0);
+
+          // ---------- whip up into S04 (vertical blur) ----------
+          const w0 = L(S.transition_out.start), w1 = L(S.transition_out.end);
+          FX.blurMove(tl, $("s03-group"), $("s03-vblur-fe"), {
+            start: w0 - 0.001, end: w1, max: 60, k: 120,
+            fn: (t) => ({ x: 0, y: FX.tween(t, w0, w1, 0, -900, "power3.in") }),
+          });
+
+          window.__timelines["S03_one_more_thing"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

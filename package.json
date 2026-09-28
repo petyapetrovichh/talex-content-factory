@@ -1,0 +1,25 @@
+{
+  "name": "talex-content-factory",
+  "private": true,
+  "type": "module",
+  "description": "TaleX video production pipeline: brief -> shotlist -> scenes -> review -> audio -> render (HyperFrames + ElevenLabs).",
+  "scripts": {
+    "build": "node pipeline/build.mjs",
+    "check": "node pipeline/check.mjs",
+    "review": "node pipeline/review.mjs",
+    "beats": "node pipeline/beats.mjs",
+    "cues": "node pipeline/cues.mjs",
+    "sfx": "node pipeline/sfx.mjs",
+    "music": "node pipeline/music.mjs",
+    "mix": "node pipeline/mix.mjs",
+    "render": "node pipeline/render.mjs",
+    "preview": "node pipeline/build.mjs && cd \"videos/${VIDEO:-2026-10_treasury-daily}\" && npx --yes hyperframes@0.8.81 preview",
+    "synth": "python3 pipeline/synth_sfx.py"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
