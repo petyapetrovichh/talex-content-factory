@@ -74,11 +74,21 @@ export function snapTimes(node, fps, key = "") {
   return node;
 }
 
+/** Deep-merge `over` into `base` (objects merge, everything else replaces). */
+function mergeTokens(base, over) {
+  for (const [k, v] of Object.entries(over || {})) {
+    if (v && typeof v === "object" && !Array.isArray(v) && base[k] && typeof base[k] === "object") mergeTokens(base[k], v);
+    else base[k] = v;
+  }
+  return base;
+}
+
 export function loadVideo(arg) {
   const dir = resolveVideoDir(arg);
-  const tokens = loadTokens();
   const copy = loadCopy(dir);
   const shotlist = loadShotlist(dir);
+  // a video may pin brand values (e.g. a format variant that keeps an earlier look): video.tokens
+  const tokens = mergeTokens(loadTokens(), shotlist.video.tokens);
   const fps = shotlist.video.fps || tokens.format.fps;
   snapTimes(shotlist.shots, fps);
   if (shotlist.video.duration) shotlist.video.duration = Math.round(shotlist.video.duration * fps) / fps;

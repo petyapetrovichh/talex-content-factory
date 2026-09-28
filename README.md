@@ -12,4 +12,6 @@ npm run render                    # → videos/<slug>/output/*.mp4
 ```
 
 Current video: `videos/2026-10_treasury-daily/` — the full ≈18s TaleX Treasury announcement (8 shots,
-cut to `audio/music/track.mp3`) → `output/treasury_daily_v1.mp4`.
+cut to `audio/music/track.mp3`) → `output/treasury_daily_v1.mp4` (the chosen cut) and `treasury_daily_v2.mp4`
+(the Higgsfield-transitions revision). Vertical 9:16 (Reels / TikTok) of v1:
+`videos/2026-10_treasury-daily-vertical/` → `output/treasury_daily_v1_vertical.mp4`.

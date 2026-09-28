@@ -38,7 +38,9 @@ for (const s of shotlist.shots) {
   });
   const frames = fs.readdirSync(out).filter((f) => /^frame-\d+.*\.png$/.test(f)).sort();
   if (!frames.length) throw new Error(`no frames captured for ${s.id}`);
-  // label + tile with ffmpeg (4 columns, 480x360 cells)
+  // label + tile with ffmpeg (4 columns; 480 px wide cells for landscape, 270 px for portrait)
+  const cw = shotlist.video.width >= shotlist.video.height ? 480 : 270;
+  const ch = Math.round((cw * shotlist.video.height) / shotlist.video.width);
   const cols = Math.min(4, frames.length);
   const rows = Math.ceil(frames.length / cols);
   const inputs = [];
@@ -47,13 +49,13 @@ for (const s of shotlist.shots) {
     inputs.push("-i", path.join(out, f));
     const label = `${s.id}  t=${times[i].toFixed(2)}s`;
     filters.push(
-      `[${i}:v]scale=480:360,drawbox=x=0:y=0:w=190:h=30:color=black@0.7:t=fill,drawtext=fontfile='${font}':text='${label}':x=10:y=8:fontsize=16:fontcolor=white[f${i}]`,
+      `[${i}:v]scale=${cw}:${ch},drawbox=x=0:y=0:w=190:h=30:color=black@0.7:t=fill,drawtext=fontfile='${font}':text='${label}':x=10:y=8:fontsize=16:fontcolor=white[f${i}]`,
     );
   });
   for (let i = frames.length; i < rows * cols; i++) {
-    filters.push(`color=c=0x222222:s=480x360:d=1[f${i}]`);
+    filters.push(`color=c=0x222222:s=${cw}x${ch}:d=1[f${i}]`);
   }
-  const layout = Array.from({ length: rows * cols }, (_, i) => `${(i % cols) * 480}_${Math.floor(i / cols) * 360}`).join("|");
+  const layout = Array.from({ length: rows * cols }, (_, i) => `${(i % cols) * cw}_${Math.floor(i / cols) * ch}`).join("|");
   filters.push(`${Array.from({ length: rows * cols }, (_, i) => `[f${i}]`).join("")}xstack=inputs=${rows * cols}:layout=${layout}:fill=0x222222[out]`);
   const sheet = path.join(reviewDir, `${s.id}_${s.name}_contact.png`);
   execFileSync("ffmpeg", ["-y", "-v", "error", ...inputs, "-filter_complex", filters.join(";"), "-map", "[out]", "-frames:v", "1", sheet]);

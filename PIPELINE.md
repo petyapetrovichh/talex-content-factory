@@ -110,6 +110,25 @@ All commands default to the newest `videos/*`; pick another with `VIDEO=2026-11_
   (T1 radial burst + halftone bloom, T2 recede into depth, T3 vertical whip, T4 macro pull-back). Violet speed
   streaks only on the horizontal-push transition.
 
+## Format variants (9:16 etc.)
+
+A different aspect ratio is its own video folder (`videos/<slug>-vertical/`) with the same brief, timing,
+cue sheet and mix, and its own `shotlist.yaml` / `scenes/`:
+
+- `video.width` / `video.height` set the frame (1080×1920 for Reels / TikTok); `video.tokens` deep-merges over
+  `brand/tokens.json`, so a variant can pin an earlier look (the vertical v1 pins v1's black/white + vignette).
+- Each scene keeps its 1440×1080 design coordinates inside a stage: `TalexFX.stage(el, shot.stage, video)`
+  centers it, scales it by `stage.scale` and shifts it by `stage.dy` frame px, and returns the frame's visible
+  box in stage coordinates. Backgrounds, vignettes, flashes and streaks stay full-frame
+  (`streaks(…, { W: video.width, yMin, yMax })`); panels that slide in (white walls) are made tall enough to
+  cover the frame.
+- Copy that is too wide breaks into lines instead of shrinking: `TalexFX.wrapWords(text, { lines: N })`
+  (balanced) or `{ after: [2] }` (explicit), driven by a shot param such as `caption_wrap` / `text_wrap`;
+  `glitchReveal` renders the `\n` as a line break.
+- Keep content in the 9:16 safe area (≈ y 250…1520, x 60…960): the platform UI covers the top bar, the
+  caption at the bottom and the button rail on the right.
+- The review sheets tile portrait frames at 270×480 per cell.
+
 ## Asking for edits
 
 Every request names **one** thing, and only that thing changes.
